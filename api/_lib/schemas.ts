@@ -16,7 +16,7 @@ export const LinesReq = z.object({
 });
 export type LinesReq = z.infer<typeof LinesReq>;
 
-export const Intent = z.enum(['lament', 'tease', 'gloat', 'brag', 'hype', 'nudge_away', 'callback', 'final', 'call_brag', 'call_lose']);
+export const Intent = z.enum(['setup', 'chatter', 'lament', 'tease', 'gloat', 'brag', 'hype', 'nudge_away', 'callback', 'final', 'call_brag', 'call_lose']);
 export const ReactReq = z.object({
   beats: z.array(z.object({
     id: s(60), friendId: s(20), intent: Intent, fact: s(300),

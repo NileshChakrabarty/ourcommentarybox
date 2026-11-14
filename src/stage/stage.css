@@ -1,0 +1,57 @@
+/* Room layout: app bar across the top, the match on the left, the gang panel beside it. Tokens only. */
+.room {
+  height: 100dvh; display: grid; background: var(--ink-0);
+  grid-template-columns: minmax(0, 1fr) var(--panel-w);
+  grid-template-rows: var(--bar-h) minmax(0, 1fr);
+  grid-template-areas: "bar bar" "stage panel";
+}
+.appbar {
+  grid-area: bar; display: flex; align-items: center; gap: var(--s-3); padding: 0 var(--s-4);
+  border-bottom: 1px solid var(--rule); min-width: 0;
+}
+.appbar-mark { font: 900 var(--fs-4)/1 var(--font-display); color: var(--marigold); }
+.appbar-title { font: 700 var(--fs-4)/1 var(--font-display); color: var(--chalk); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.appbar-gap { flex: 1; }
+
+.stage-col { grid-area: stage; min-width: 0; min-height: 0; overflow-y: auto; padding: var(--s-4); display: grid; align-content: start; gap: var(--s-4); }
+.stage { display: grid; gap: var(--s-2); }
+.stage-note { margin: 0; padding: var(--s-2) var(--s-3); border-radius: var(--r-1); background: var(--ink-2); border-left: 3px solid var(--marigold); font-size: var(--fs-2); }
+/* The player box is exactly 16:9 and is never overlapped by our UI. */
+.player-box {
+  position: relative; width: 100%; aspect-ratio: 16 / 9; max-height: calc(100dvh - var(--bar-h) - 180px);
+  margin-inline: auto; background: var(--ink-1); border-radius: var(--r-2); overflow: hidden;
+}
+@supports (aspect-ratio: 16 / 9) { .player-box { width: min(100%, calc((100dvh - var(--bar-h) - 180px) * 16 / 9)); } }
+.yt-mount, .yt-mount > * , .yt-mount iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.yt-mount[hidden] { display: none; }
+.player-loading { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; }
+
+.chapters { display: grid; gap: var(--s-2); }
+.chapters-h { margin: 0; font: 700 var(--fs-3)/1 var(--font-display); color: var(--chalk-2); }
+.chapters ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-2); }
+.chapter {
+  width: 100%; height: 100%; text-align: left; display: grid; grid-template-columns: auto 1fr; column-gap: var(--s-3); row-gap: 2px;
+  padding: var(--s-3); border-radius: var(--r-2); background: var(--ink-1); border: 1px solid var(--rule-strong); color: var(--chalk);
+  transition: border-color var(--dur-1), background var(--dur-1);
+}
+.chapter:hover:not(:disabled) { border-color: var(--marigold); }
+.chapter:disabled { opacity: .5; cursor: not-allowed; }
+.chapter.on { border-color: var(--marigold); background: var(--marigold-soft); }
+.ch-n { grid-row: span 2; font: 900 var(--fs-5)/1 var(--font-display); color: var(--chalk-3); align-self: center; }
+.chapter.on .ch-n { color: var(--marigold); }
+.ch-t { font-weight: 700; font-size: var(--fs-2); }
+.ch-b { font-size: var(--fs-1); color: var(--chalk-2); }
+.chapter.done:not(.on) .ch-b { color: var(--ok); }
+
+.attribution { font-size: var(--fs-1); color: var(--chalk-3); line-height: var(--lh-ui); }
+.attribution a { color: var(--chalk-2); }
+
+/* Phones and narrow windows: match on top, panel below; the mic stays in reach. */
+@media (max-width: 900px) {
+  .room { height: auto; min-height: 100dvh; grid-template-columns: 1fr; grid-template-rows: var(--bar-h) auto auto; grid-template-areas: "bar" "stage" "panel"; }
+  .stage-col { overflow: visible; padding: var(--s-3) var(--s-3) 0; }
+  .player-box { max-height: none; width: 100%; }
+  .chapters ol { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: minmax(200px, 72%); overflow-x: auto; }
+  .stage-foot { display: none; }
+  .appbar-title { display: none; }
+}

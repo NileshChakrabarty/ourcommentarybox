@@ -5,7 +5,10 @@ import { engine, SELF } from '../../services/engine';
 import { audio } from '../../services/audio/engine';
 import { Avatar } from '../components/Avatar';
 import { rewatch } from '../actions';
+import { Attribution } from '../components/Attribution';
 import './screens.css';
+
+const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`;
 
 export function WrapScreen() {
   const wrap = useRoom((s) => s.wrap);
@@ -70,9 +73,9 @@ export function WrapScreen() {
               <li key={m.id}>
                 <Avatar m={m} size={28} />
                 <span>{who(m.id)}</span>
-                <span className="num muted">{wrap.stats.clips[m.id] ?? 0} said</span>
-                <span className="num muted">{wrap.stats.callsWon[m.id] ?? 0} calls won</span>
-                {wrap.stats.mostRoasted?.memberId === m.id && <span className="tag">Most roasted ({wrap.stats.mostRoasted.count})</span>}
+                <span className="num muted">{plural(wrap.stats.clips[m.id] ?? 0, 'line')}</span>
+                <span className="num muted">{plural(wrap.stats.callsWon[m.id] ?? 0, 'call')} won</span>
+                {wrap.stats.mostRoasted?.memberId === m.id && <span className="chip">Most roasted ({wrap.stats.mostRoasted.count})</span>}
               </li>
             ))}
           </ul>
@@ -82,8 +85,9 @@ export function WrapScreen() {
       <footer className="wrap-foot">
         <button className="btn btn-primary" onClick={() => patch({ screen: 'shelf' })}>See your memory shelf</button>
         {roomId && storageOk && <button className="btn" onClick={() => void rewatch(roomId)}>Rewatch with the gang</button>}
-        <button className="btn btn-ghost" onClick={() => patch({ screen: 'landing' })}>Back to start</button>
+        <button className="btn btn-ghost" onClick={() => patch({ screen: 'start' })}>Back to start</button>
       </footer>
+      <Attribution className="wrap-attr" />
     </main>
   );
 }

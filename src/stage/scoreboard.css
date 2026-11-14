@@ -1,0 +1,41 @@
+/* Scoreboard fallback: a stylised floodlit scene that fills the same 16:9 box as the video. Tokens only. */
+.board {
+  position: absolute; inset: 0; overflow: hidden; display: grid; grid-template-rows: auto 1fr auto; isolation: isolate;
+  background: radial-gradient(120% 70% at 50% 110%, var(--turf-2) 0%, var(--turf-1) 45%, var(--turf-0) 75%), var(--turf-0);
+  color: var(--chalk);
+}
+.board::before, .board::after { /* floodlights */
+  content: ''; position: absolute; top: -20%; width: 60%; height: 80%; z-index: -1; pointer-events: none;
+  background: radial-gradient(closest-side, var(--floodlight), transparent);
+}
+.board::before { left: -14%; } .board::after { right: -14%; }
+.board-pitch {
+  position: absolute; left: 50%; bottom: -8%; width: 14%; height: 66%; z-index: -1; transform: translateX(-50%) perspective(600px) rotateX(58deg);
+  transform-origin: bottom; background: var(--pitch); border-radius: var(--r-1); opacity: .9;
+}
+.board-top { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); flex-wrap: wrap; }
+.board-tag { font: 800 var(--fs-2)/1 var(--font-display); padding: var(--s-1) var(--s-2); border-radius: var(--r-1); background: var(--ink-3); color: var(--chalk); }
+.board-stage { display: grid; place-items: center; text-align: center; padding: 0 var(--s-5); min-height: 0; }
+.burst { display: grid; gap: var(--s-2); justify-items: center; animation: burst-in var(--dur-3) var(--ease-spring) both; }
+.burst-big { font: 900 clamp(56px, 10vw, 150px)/.85 var(--font-display); }
+.burst-line { font-size: var(--fs-3); font-weight: 500; max-width: 46ch; }
+.burst-six .burst-big, .burst-four .burst-big { color: var(--marigold); }
+.burst-out .burst-big { color: var(--red); }
+.burst-quiet .burst-big { font-size: clamp(40px, 6vw, 80px); color: var(--chalk-2); }
+.burst-extra .burst-big { font-size: clamp(36px, 5vw, 70px); color: var(--chalk-2); }
+@keyframes burst-in { from { opacity: 0; transform: scale(.7); } }
+.runup { display: grid; gap: var(--s-3); justify-items: center; color: var(--chalk-2); font: 600 var(--fs-4)/1 var(--font-display); }
+.runup-ball { width: 16px; height: 16px; border-radius: 50%; background: var(--chalk); animation: runup var(--dur-4) ease-in infinite; }
+@keyframes runup { from { transform: translateY(-24px) scale(.6); opacity: .2; } to { transform: translateY(8px) scale(1); opacity: 1; } }
+.scorebar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-5);
+  margin: 0 var(--s-3) var(--s-3); padding: var(--s-2) var(--s-4); background: var(--glass); border-radius: var(--r-2); font-size: var(--fs-2);
+}
+.sb-score { display: flex; align-items: baseline; gap: var(--s-2); }
+.sb-runs { font: 900 var(--fs-5)/1 var(--font-display); }
+.sb-batters { display: flex; gap: var(--s-4); }
+.sb-equation b { color: var(--marigold); }
+.sb-over { display: flex; gap: var(--s-1); margin-left: auto; }
+.tok { font-style: normal; min-width: 24px; height: 24px; padding: 0 var(--s-1); border-radius: var(--r-pill); display: grid; place-items: center; font-size: var(--fs-1); font-weight: 700; background: var(--ink-3); }
+.tok-six, .tok-four { background: var(--marigold); color: var(--marigold-ink); }
+.tok-out { background: var(--red-strong); color: var(--chalk); }

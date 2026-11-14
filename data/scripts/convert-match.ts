@@ -93,6 +93,7 @@ const match: Match = {
   date: info.dates[0],
   venue: info.venue,
   result: `${TEAM[info.outcome.winner as TeamName].name} won by ${by.runs ? `${by.runs} runs` : `${by.wickets} wickets`}`,
+  winner: TEAM[info.outcome.winner as TeamName].id,
   battingFirst: first.id, chasing: second.id, target: firstTotal + 1,
   source: {
     name: 'Cricsheet', licence: 'Open Data Commons Attribution License (ODC-By)', url: 'https://cricsheet.org/',

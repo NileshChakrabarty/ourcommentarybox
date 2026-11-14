@@ -12,7 +12,7 @@ const Ball = z.object({
   legalBallsAfter: z.number().int(), text: z.string().max(120),
 });
 export const MatchSchema = z.object({
-  id: z.string(), title: z.string(), shortTitle: z.string(), overs: z.number().int().positive(),
+  id: z.string(), title: z.string(), shortTitle: z.string(), overs: z.number().int().positive(), winner: z.string().optional(),
   video: z.object({ provider: z.literal('youtube'), id: z.string(), title: z.string(), owner: z.string(), url: z.string() }).optional(), date: z.string(), venue: z.string(), result: z.string(),
   battingFirst: z.string(), chasing: z.string(), target: z.number().int(),
   source: z.object({ name: z.string(), licence: z.string(), url: z.string(), note: z.string() }),
@@ -22,3 +22,14 @@ export const MatchSchema = z.object({
 }).refine((m) => m.balls.every((b, i) => b.seq === i), 'balls must be in seq order');
 
 export function parseMatch(x: unknown): Match { return MatchSchema.parse(x) as Match; }
+
+const ChapterSchema = z.object({
+  id: z.string(), title: z.string().max(60), blurb: z.string().max(120),
+  startBallSeq: z.number().int().nonnegative(), endBallSeq: z.number().int().nonnegative(),
+  nudgeSeq: z.number().int().optional(), callbackSeq: z.number().int().optional(),
+}).refine((c) => c.endBallSeq >= c.startBallSeq, 'chapter end before start');
+export const ChapterFileSchema = z.object({ journeyStart: z.string(), chapters: z.array(ChapterSchema).min(1) });
+export const TimelineSchema = z.array(z.object({
+  ballSeq: z.number().int().nonnegative(), innings: z.union([z.literal(1), z.literal(2)]), over: z.number().int(), ball: z.number().int(),
+  videoTime: z.number().nonnegative(), tagged: z.boolean(), src: z.enum(['tag', 'scorebug', 'interp']).optional(),
+})).refine((t) => t.every((e, i) => e.ballSeq === i), 'timeline must have one entry per ball in seq order');

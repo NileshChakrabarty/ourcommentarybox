@@ -1,0 +1,77 @@
+/* Fun-Banter design tokens — "the commentary box" (docs/review/REDESIGN.md §1).
+   Every colour, size, radius and duration in the app comes from here. Dark by default (people watch at night). */
+:root {
+  /* ink: the panel and app surfaces, darkest → lightest */
+  --ink-0: #0b1626;
+  --ink-1: #12223a;
+  --ink-2: #1a3050;
+  --ink-3: #24406a;
+  --rule: #2a4466;          /* hairlines and dividers (decorative) */
+  --rule-strong: #5878a6;   /* control boundaries — ≥3:1 on ink-0/1 (WCAG 1.4.11) */
+  /* chalk: text */
+  --chalk: #f4f1e8;
+  --chalk-2: #a9b9cc;       /* secondary text, ≥6.6:1 on ink-2 */
+  --chalk-3: #8597ad;       /* tertiary text, ≥5.3:1 on ink-1 */
+  /* the one action colour */
+  --marigold: #ffc233;
+  --marigold-hi: #ffd162;
+  --marigold-ink: #2a1d00;
+  --marigold-soft: rgb(255 194 51 / .14);
+  /* wickets only */
+  --red: #ff5a4f;
+  --red-strong: #c8322a;    /* white text on it ≥5.3:1 */
+  --red-ink: #1a0503;
+  --red-soft: rgb(255 90 79 / .16);
+  --ok: #4ade80;
+  --ok-soft: rgb(74 222 128 / .22);
+  --seam: rgb(255 255 255 / .55);
+  /* the gang */
+  --you: #ffc233;
+  --dev: #ff8a3d;
+  --ritu: #f06bb5;
+  --sunny: #5cc8ff;
+  --ind: #4f8cff;
+  --eng: #e5484d;
+  --scrim: rgb(5 12 22 / .6);
+  /* scoreboard fallback scene */
+  --turf-0: #0a1a14; --turf-1: #163d2c; --turf-2: #1d5139; --pitch: #c9b48a; --floodlight: rgb(255 246 214 / .2);
+  --glass: rgb(7 15 27 / .82);
+
+  /* type */
+  --font-display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  --font-ui: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fs-1: 12px;  --fs-2: 14px;  --fs-3: 16px;  --fs-4: 20px;  --fs-5: 28px;  --fs-6: 44px;  --fs-7: 72px;
+  --lh-tight: 1.02; --lh-ui: 1.4;
+
+  /* space (4-pt) */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px;
+
+  /* radius: small controls, rows, big containers, pills */
+  --r-1: 6px; --r-2: 12px; --r-3: 20px; --r-pill: 999px;
+
+  /* motion */
+  --dur-1: 120ms; --dur-2: 200ms; --dur-3: 360ms; --dur-4: 900ms;
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --ease-spring: cubic-bezier(.2, .9, .3, 1.3);
+
+  /* layout */
+  --bar-h: 52px;
+  --panel-w: 400px;
+  --rail-w: 52px;
+  --avatar-s: 28px;
+  --avatar-m: 40px;
+  --hit: 44px;               /* minimum touch target */
+  --shadow-lift: 0 18px 50px rgb(0 0 0 / .45);
+
+  color-scheme: dark;
+}
+
+/* Optional light theme (data-theme="light" on <html>). */
+:root[data-theme="light"] {
+  --ink-0: #eef2f7; --ink-1: #ffffff; --ink-2: #f3f6fa; --ink-3: #e3e9f1;
+  --rule: #d3dce7; --rule-strong: #7d8fa6;
+  --chalk: #0b1626; --chalk-2: #3f5169; --chalk-3: #4a5d74;
+  --marigold-soft: rgb(255 194 51 / .22); --red-soft: rgb(255 90 79 / .14);
+  --scrim: rgb(240 244 249 / .7);
+  color-scheme: light;
+}

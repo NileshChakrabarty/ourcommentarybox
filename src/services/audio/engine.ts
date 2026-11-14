@@ -1,8 +1,6 @@
-// Audio: synthesized crowd ambience ("match audio" — no real broadcast audio), ducking (F-DUCK),
-// and a sequential clip queue (F-QUEUE) so gang clips never overlap.
-export const DUCK_LEVEL = 0.25;
-export const DUCK_DOWN_S = 0.15;
-export const DUCK_UP_S = 0.3;
+// Audio: the gang clip queue (F-QUEUE, clips never overlap) and ducking (F-DUCK). Ducking goes through the match
+// source (YouTube player.setVolume, or the scoreboard's crowd volume) via an injected Ducker. The synthesized crowd
+// is only used by the scoreboard fallback (there is no real broadcast audio there).
 export const QUEUE_GAP_MS = 150;
 export const QUEUE_CAP = 5;
 
@@ -22,12 +20,21 @@ class AudioEngine {
   private listeners = new Set<(speakingId?: string) => void>();
   ducked = false;
 
+  private ducker?: { duck(): void; restore(): void };
+  /** The match source's ducker (player.setVolume ramp). */
+  setDucker(d?: { duck(): void; restore(): void }) { this.ducker = d; }
+
   /** Must be called from a user gesture (Start button) to satisfy autoplay policies. */
   unlock() {
     if (this.ctx) { void this.ctx.resume(); return; }
+    try { this.ctx = new AudioContext(); } catch { /* no Web Audio: clips still play via <audio> */ }
+  }
+
+  /** Scoreboard fallback only: synthesized crowd ambience, volume follows the source's setVolume (0–100). */
+  startCrowd() {
+    const ctx = this.ctx;
+    if (!ctx || this.crowd) return;
     try {
-      const ctx = new AudioContext();
-      this.ctx = ctx;
       this.match = ctx.createGain(); this.match.gain.value = 1; this.match.connect(ctx.destination);
       // Crowd: looping pink-ish noise through band-pass filters.
       const len = ctx.sampleRate * 4;
@@ -49,6 +56,12 @@ class AudioEngine {
       src.start();
     } catch { /* no Web Audio: run silent */ }
   }
+  setCrowdVolume(v: number) {
+    const ctx = this.ctx, g = this.match?.gain;
+    if (!ctx || !g) return;
+    g.cancelScheduledValues(ctx.currentTime); g.setValueAtTime(Math.max(0, Math.min(1, v / 100)), ctx.currentTime);
+  }
+  stopCrowd() { if (this.match) { this.match.disconnect(); this.match = undefined; this.crowd = undefined; } }
 
   /** Crowd reaction for a ball result: 0 = calm, 1 = boundary, 2 = six / wicket. */
   swell(level: 0 | 1 | 2) {
@@ -80,14 +93,10 @@ class AudioEngine {
   get isMuted() { return this.muted; }
 
   private duck(on: boolean) {
+    if (on === this.ducked) return;
     this.ducked = on;
-    const ctx = this.ctx, g = this.match?.gain;
-    if (!ctx || !g) return;
-    const now = ctx.currentTime;
-    g.cancelScheduledValues(now); g.setValueAtTime(g.value, now);
-    g.linearRampToValueAtTime(on ? DUCK_LEVEL : 1, now + (on ? DUCK_DOWN_S : DUCK_UP_S));
+    if (on) this.ducker?.duck(); else this.ducker?.restore();
   }
-  matchGain() { return this.match?.gain.value ?? 1; }
 
   onSpeaking(fn: (id?: string) => void) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
   private emit(id?: string) { this.listeners.forEach((f) => f(id)); }

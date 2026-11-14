@@ -282,6 +282,13 @@
       "kind": "first"
     },
     {
+      "t": 14176,
+      "inn": 2,
+      "overs": "3.0",
+      "score": "5-1",
+      "kind": "first"
+    },
+    {
       "t": 14400,
       "inn": 2,
       "overs": "4.0",
@@ -419,6 +426,27 @@
       "inn": 2,
       "overs": "11.3",
       "score": "32-4",
+      "kind": "first"
+    },
+    {
+      "t": 16576,
+      "inn": 2,
+      "overs": "11.4",
+      "score": "32-4",
+      "kind": "first"
+    },
+    {
+      "t": 16616,
+      "inn": 2,
+      "overs": "11.5",
+      "score": "36-4",
+      "kind": "first"
+    },
+    {
+      "t": 16660,
+      "inn": 2,
+      "overs": "12.0",
+      "score": "38-4",
       "kind": "first"
     },
     {

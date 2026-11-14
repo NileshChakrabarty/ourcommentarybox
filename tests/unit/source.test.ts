@@ -66,6 +66,15 @@ describe('YouTube → scoreboard fallback', () => {
     const { source } = await p; lastEvents.onReady?.();
     expect(source.kind).toBe('youtube');
   });
+  it('retries the embed once on a transient error 5, at the same time', async () => {
+    const onFallback = vi.fn();
+    const { source } = await openSource({ mount: document.createElement('div'), video, start: 10, end: 99_999, onFallback });
+    lastEvents.onReady?.();
+    lastEvents.onError?.({ data: 5 });
+    await vi.waitFor(() => expect(onFallback).toHaveBeenCalledTimes(1));
+    expect(source.kind).toBe('youtube');
+    expect(onFallback.mock.calls[0][0].kind).toBe('youtube');
+  });
   it('switches to the scoreboard at the same time when the player raises onError (e.g. 150: embedding disabled)', async () => {
     const onFallback = vi.fn();
     const { source } = await openSource({ mount: document.createElement('div'), video, start: 10, end: 99_999, onFallback });

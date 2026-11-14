@@ -1,16 +1,19 @@
-// Press-and-hold to talk (pointer or Space). Max 5 s, auto-stop; < 300 ms discarded (F-VOICE).
+// Press-and-hold to talk (pointer, or hold Space anywhere). Max 5 s, auto-stop; < 300 ms discarded (F-VOICE).
+// While recording, a live waveform shows the mic is actually hearing you.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { recorder, MAX_CLIP_MS } from '../../services/audio/recorder';
 import { audio } from '../../services/audio/engine';
 import { engine } from '../../services/engine';
 import { useRoom, patch } from '../../store/room';
 
+const BARS = 24;
+
 export function TalkButton() {
   const mic = useRoom((s) => s.mic);
   const recording = useRoom((s) => s.recording);
   const away = useRoom((s) => !!s.away?.active);
   const [left, setLeft] = useState(MAX_CLIP_MS);
-  const [level, setLevel] = useState(0);
+  const [levels, setLevels] = useState<number[]>(() => Array(BARS).fill(0));
   const holding = useRef(false);
   const raf = useRef(0);
 
@@ -32,14 +35,19 @@ export function TalkButton() {
     if (!recorder.start(() => void stop())) { holding.current = false; return; }
     patch({ recording: true });
     const t0 = Date.now();
-    const loop = () => { setLeft(Math.max(0, MAX_CLIP_MS - (Date.now() - t0))); setLevel(recorder.level()); raf.current = requestAnimationFrame(loop); };
+    let frame = 0;
+    const loop = () => {
+      setLeft(Math.max(0, MAX_CLIP_MS - (Date.now() - t0)));
+      if (frame++ % 3 === 0) setLevels((l) => [...l.slice(1), recorder.level()]);
+      raf.current = requestAnimationFrame(loop);
+    };
     loop();
   }, [away, stop]);
 
   useEffect(() => {
-    const typing = (e: KeyboardEvent) => { const t = e.target as HTMLElement; return t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable; };
+    const typing = (e: KeyboardEvent) => { const t = e.target as HTMLElement; return t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable || t.tagName === 'BUTTON'; };
     const down = (e: KeyboardEvent) => { if (e.code === 'Space' && !e.repeat && !typing(e)) { e.preventDefault(); void start(); } };
-    const up = (e: KeyboardEvent) => { if (e.code === 'Space' && !typing(e)) { e.preventDefault(); void stop(); } };
+    const up = (e: KeyboardEvent) => { if (e.code === 'Space' && holding.current) { e.preventDefault(); void stop(); } };
     window.addEventListener('keydown', down); window.addEventListener('keyup', up);
     return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
   }, [start, stop]);
@@ -47,24 +55,27 @@ export function TalkButton() {
   if (mic === 'denied' || mic === 'unsupported') {
     return (
       <div className="talk-off" role="status">
-        <span>{mic === 'denied' ? 'Mic off. Type or react instead.' : "This browser can't record. Type or react instead."}</span>
-        {mic === 'denied' && <button className="btn btn-sm btn-ghost" onClick={() => void recorder.ensure(audio.ctx).then((s) => patch({ mic: s }))}>Try mic again</button>}
+        <span>{mic === 'denied' ? 'Mic is off. React or send the gang’s lines instead.' : "This browser can't record. React or send the gang’s lines instead."}</span>
+        {mic === 'denied' && <button className="btn btn-sm btn-ghost" onClick={() => void recorder.ensure(audio.ctx).then((s) => patch({ mic: s }))}>Try the mic again</button>}
       </div>
     );
   }
   return (
     <button
       className={`talk${recording ? ' rec' : ''}`}
-      style={{ '--lvl': level } as React.CSSProperties}
       disabled={away}
       onPointerDown={(e) => { e.preventDefault(); try { (e.target as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic pointer */ } void start(); }}
       onPointerUp={() => void stop()}
       onPointerCancel={() => void stop()}
       onContextMenu={(e) => e.preventDefault()}
-      aria-label="Hold to talk. You can also hold the Space bar."
+      aria-label="Hold to talk to the gang. You can also hold the Space bar."
     >
-      <span className="talk-ring" aria-hidden="true" />
-      {recording ? <span className="num">Recording… {(left / 1000).toFixed(1)}s</span> : <span>Hold to talk <kbd>Space</kbd></span>}
+      {recording ? (
+        <>
+          <span className="talk-wave" aria-hidden="true">{levels.map((v, i) => <i key={i} style={{ '--v': Math.min(1, v * 1.6) } as React.CSSProperties} />)}</span>
+          <span className="talk-time num">{(left / 1000).toFixed(1)}s</span>
+        </>
+      ) : <span>Hold to talk <kbd>Space</kbd></span>}
     </button>
   );
 }

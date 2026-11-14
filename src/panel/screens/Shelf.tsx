@@ -13,13 +13,13 @@ export function Shelf() {
   const [open, setOpen] = useState<SavedRoom | null>(null);
   useEffect(() => { void refreshShelf(); }, []);
   const name = (id: string) => (id === SELF_ID ? 'You' : FRIENDS.find((f) => f.id === id)?.name ?? id);
-  const colour = (id: string) => (id === SELF_ID ? 'var(--me)' : FRIENDS.find((f) => f.id === id)?.colour);
+  const colour = (id: string) => (id === SELF_ID ? 'var(--you)' : FRIENDS.find((f) => f.id === id)?.colour);
 
   return (
     <main className="shelf">
       <header className="shelf-head">
         <h1>Your memories</h1>
-        <button className="btn btn-ghost btn-sm" onClick={() => patch({ screen: 'landing' })}>Back to start</button>
+        <button className="btn btn-ghost btn-sm" onClick={() => patch({ screen: 'start' })}>Back to start</button>
       </header>
       {memories.length === 0 && <p className="empty">No memories yet. Watch a match with the gang and it lands here.</p>}
       <div className="shelf-body">
@@ -41,7 +41,7 @@ export function Shelf() {
               <button className="btn btn-ghost btn-sm" onClick={() => void storage.deleteRoom(open.id).then(() => { setOpen(null); void refreshShelf(); })}>Delete memory</button>
             </div>
             <ol className="timeline">
-              {open.feed.filter((f) => f.kind !== 'reaction' && f.text).map((f) => (
+              {open.feed.filter((f) => f.kind !== 'reaction' && f.kind !== 'skip' && f.text).map((f) => (
                 <li key={f.id}>
                   <span className="num muted">{match.balls[f.anchorSeq]?.label}</span>
                   <b style={{ color: colour(f.memberId) }}>{name(f.memberId)}</b>

@@ -1,46 +1,62 @@
 // Friends director: decides WHICH simulated friend speaks on WHICH ball and WHY (intent).
 // The words are generated live (Gemini) with precomputed/template safety nets. Pure.
-import type { Match, Member, Moment, ID } from '../types';
+// Spoiler rule: a beat anchored to ball N only ever uses facts up to and including ball N.
+import type { Chapter, Match, Member, Moment, ID } from '../types';
+import { buildSnapshots, type Snapshot } from '../replay/scoreboard';
 
-export type Intent = 'lament' | 'tease' | 'gloat' | 'brag' | 'hype' | 'nudge_away' | 'callback' | 'final' | 'reply' | 'call_brag' | 'call_lose';
+export type Intent = 'setup' | 'chatter' | 'lament' | 'tease' | 'gloat' | 'brag' | 'hype' | 'nudge_away' | 'callback' | 'final' | 'reply' | 'call_brag' | 'call_lose';
 export interface Beat {
   id: ID; seq: number; friendId: ID; intent: Intent;
   targetId?: ID;     // who it's aimed at (member id)
   momentId?: ID;
-  /** compact factual context for the prompt */
+  /** compact factual context for the prompt (facts up to this ball only) */
   fact: string;
   /** true if the beat does not depend on the user's own loyalties → can be precomputed */
   stable: boolean;
 }
 
-export interface ScriptPoints { nudgeSeq: number; callOffers: { innings: 1 | 2; over: number }[] }
+export interface ScriptPoints {
+  nudges: { seq: number; chapterId: ID }[];
+  callbacks: { seq: number; chapterId: ID }[];
+  callOffers: { innings: 1 | 2; over: number; beforeSeq: number }[];
+}
 
-/** Scripted product beats for this match (positions derived from data, see ADR-0003). */
-export function scriptPoints(match: Match): ScriptPoints {
-  const lastOf = (inn: 1 | 2, over: number) => match.balls.filter((b) => b.innings === inn && b.over === over).at(-1)!.seq;
+/** Scripted product beats, derived from the demo chapters (see ADR-0007). */
+export function scriptPoints(match: Match, chapters: Chapter[]): ScriptPoints {
+  const callOffers: ScriptPoints['callOffers'] = [];
+  for (const c of chapters) {
+    const first = match.balls[c.startBallSeq];
+    const prev = match.balls[c.startBallSeq - 1];
+    // offer a Gang Call when a chapter opens at the start of an over
+    if (first && (!prev || prev.over !== first.over || prev.innings !== first.innings)) callOffers.push({ innings: first.innings, over: first.over, beforeSeq: first.seq });
+  }
   return {
-    nudgeSeq: lastOf(2, 13),                 // end of chase over 14 → "go grab chai, we'll call you"
-    callOffers: [{ innings: 1, over: 9 }, { innings: 2, over: 8 }, { innings: 2, over: 16 }],
+    nudges: chapters.filter((c) => c.nudgeSeq !== undefined).map((c) => ({ seq: c.nudgeSeq!, chapterId: c.id })),
+    callbacks: chapters.filter((c) => c.callbackSeq !== undefined).map((c) => ({ seq: c.callbackSeq!, chapterId: c.id })),
+    callOffers,
   };
 }
 
-export function planBeats(match: Match, members: Member[], moments: Moment[], selfId: ID): Beat[] {
+export function stateLine(match: Match, s: Snapshot): string {
+  const bat = match.teams.find((t) => t.id === (s.innings === 1 ? match.battingFirst : match.chasing))!.short;
+  return s.innings === 2
+    ? `${bat} ${s.runs}/${s.wickets} after ${s.overs} overs, chasing ${match.target}, need ${s.need} off ${s.ballsLeft}`
+    : `${bat} ${s.runs}/${s.wickets} after ${s.overs} overs, batting first`;
+}
+
+export function planBeats(match: Match, members: Member[], moments: Moment[], selfId: ID, chapters: Chapter[] = [], snaps = buildSnapshots(match)): Beat[] {
   const friends = members.filter((m) => m.isSimulated);
-  const byId = new Map(members.map((m) => [m.id, m]));
-  const team = (id: ID) => byId.get(id)!.loyalty.teamId;
+  const P = new Map(match.players.map((p) => [p.id, p]));
+  const name = (id?: ID) => (id ? P.get(id)?.short ?? id : '');
   const beats: Beat[] = [];
   const add = (b: Omit<Beat, 'id'>) => beats.push({ ...b, id: `${b.seq}-${b.friendId}-${b.intent}` });
-  /** pick a teaser: prefer a friend backing the other team, not the victim, not already speaking on this seq */
+  const count = (id: ID) => beats.filter((b) => b.friendId === id).length;
+  /** pick a teaser: not the victim, not already speaking on this ball, fewest lines so far, not the last speaker */
   const teaser = (victimId: ID, seq: number): Member | undefined => {
     const busy = new Set(beats.filter((b) => b.seq === seq).map((b) => b.friendId));
-    const pool = friends.filter((f) => f.id !== victimId && !busy.has(f.id));
-    const count = (id: ID) => beats.filter((b) => b.friendId === id).length;
     const lastSpeaker = beats.at(-1)?.friendId;
-    // rotate: fewest lines so far, avoid repeating the last speaker, then prefer the rival team
-    return [...pool].sort((a, b) =>
-      count(a.id) - count(b.id) ||
-      Number(a.id === lastSpeaker) - Number(b.id === lastSpeaker) ||
-      Number(a.loyalty.teamId === team(victimId)) - Number(b.loyalty.teamId === team(victimId)))[0];
+    return friends.filter((f) => f.id !== victimId && !busy.has(f.id))
+      .sort((a, b) => count(a.id) - count(b.id) || Number(a.id === lastSpeaker) - Number(b.id === lastSpeaker))[0];
   };
   const r4Over = new Set<string>();
 
@@ -75,28 +91,53 @@ export function planBeats(match: Match, members: Member[], moments: Moment[], se
         else { const t = teaser(selfId, m.ballSeq); if (t) add({ seq: m.ballSeq, friendId: t.id, intent: 'hype', targetId: selfId, momentId: m.id, fact: m.fact, stable: false }); }
         break;
       }
-      case 'R6': {
-        const chaser = friends.find((f) => f.loyalty.teamId === match.chasing) ?? friends[0];
-        add({ seq: m.ballSeq, friendId: chaser.id, intent: 'callback', targetId: selfId, momentId: m.id, fact: m.fact, stable: true });
-        break;
-      }
       case 'R7': {
-        const winnerTeam = match.chasing; // chasing side won this match; kept general below
-        const won = friends.find((f) => f.loyalty.teamId === winnerTeam);
-        const lost = friends.find((f) => f.loyalty.teamId !== winnerTeam);
-        if (won) add({ seq: m.ballSeq, friendId: won.id, intent: 'final', momentId: m.id, fact: `${m.fact} ${won.name}'s team won.`, stable: true });
-        if (lost) add({ seq: m.ballSeq, friendId: lost.id, intent: 'final', momentId: m.id, fact: `${m.fact} ${lost.name}'s team lost.`, stable: true });
+        const winner = match.winner;
+        // everyone in the demo gang backs the same side: one reaction from the optimist and one from the pessimist
+        const [a, b] = [friends[0], friends[friends.length - 1]];
+        for (const f of [a, b]) if (f) add({ seq: m.ballSeq, friendId: f.id, intent: 'final', momentId: m.id, fact: `${m.fact} ${f.loyalty.teamId === winner ? `${f.name}'s team won.` : `${f.name}'s team lost.`}`, stable: true });
         break;
       }
+      default: break; // R6 (close chase) is covered by chapter call-backs in v1.2
     }
   }
-  const sp = scriptPoints(match);
-  const nz = friends.find((f) => f.loyalty.teamId === match.chasing) ?? friends[0];
-  add({ seq: sp.nudgeSeq, friendId: nz.id, intent: 'nudge_away', targetId: selfId,
-    fact: 'Middle overs of the chase. Tell your friend to step away and grab chai; you will call them back when the finish gets close.', stable: true });
+
+  const sp = scriptPoints(match, chapters);
+  const pessimist = friends.find((f) => f.id === 'sunny') ?? friends[friends.length - 1];
+  for (const n of sp.nudges) {
+    add({ seq: n.seq, friendId: pessimist.id, intent: 'nudge_away', targetId: selfId, stable: true,
+      fact: `${stateLine(match, snaps[n.seq])}. Tell your friend to step away and grab a chai; the gang will call them back when something big happens.` });
+  }
+  for (const c of sp.callbacks) {
+    const s = snaps[c.seq];
+    const atCrease = [s.striker?.id, s.nonStriker?.id].filter(Boolean) as ID[];
+    const caller = friends.find((f) => f.loyalty.heroId && atCrease.includes(f.loyalty.heroId)) ?? friends[0];
+    const hero = caller.loyalty.heroId && atCrease.includes(caller.loyalty.heroId) ? name(caller.loyalty.heroId) : undefined;
+    add({ seq: c.seq, friendId: caller.id, intent: 'callback', targetId: selfId, stable: true,
+      fact: `${stateLine(match, s)}.${hero ? ` ${hero} (${caller.name}'s hero) is at the crease.` : ''} Urgently call your friend back to the screen. Do NOT say what happens next.` });
+  }
+
+  // Chapters: a scene-setting line as the chapter opens, then chatter so most balls have a voice (no dead air)
+  for (const ch of chapters) {
+    const open = Math.max(0, ch.startBallSeq - 1);
+    if (!beats.some((b) => b.seq === open)) {
+      const f = [...friends].sort((a, b) => count(a.id) - count(b.id))[0];
+      const s = snaps[open], next = match.balls[ch.startBallSeq];
+      add({ seq: open, friendId: f.id, intent: 'setup', stable: true,
+        fact: `${stateLine(match, s)}. ${name(next.bowlerId)} is about to bowl to ${name(next.batterId)}. Set the scene for the gang; no predictions of what happens.` });
+    }
+    for (let seq = ch.startBallSeq; seq <= ch.endBallSeq; seq++) {
+      if (beats.some((b) => b.seq === seq)) continue;
+      const b = match.balls[seq];
+      if (b.extraType === 'wd' && seq % 2) continue; // not every wide needs a comment
+      const lastSpeaker = beats.filter((x) => x.seq < seq).at(-1)?.friendId;
+      const f = [...friends].filter((x) => x.id !== lastSpeaker).sort((a, c) => count(a.id) - count(c.id))[0];
+      add({ seq, friendId: f.id, intent: 'chatter', stable: true, fact: `${b.text} ${stateLine(match, snaps[seq])}.` });
+    }
+  }
 
   // cap: max 2 friend beats per ball, keep order by importance
-  const order: Intent[] = ['callback', 'final', 'lament', 'tease', 'gloat', 'brag', 'hype', 'nudge_away'];
+  const order: Intent[] = ['callback', 'final', 'lament', 'tease', 'gloat', 'brag', 'hype', 'nudge_away', 'setup', 'chatter'];
   const bySeq = new Map<number, Beat[]>();
   for (const b of beats) bySeq.set(b.seq, [...(bySeq.get(b.seq) ?? []), b]);
   const res: Beat[] = [];

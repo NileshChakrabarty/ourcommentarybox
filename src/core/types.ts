@@ -25,6 +25,7 @@ export interface MatchVideo { provider: 'youtube'; id: string; title: string; ow
 export interface Match {
   id: ID; title: string; shortTitle: string; date: string; venue: string; result: string;
   overs: number;          // scheduled overs per innings (50 for an ODI)
+  winner?: ID;            // team id of the winner
   video?: MatchVideo;
   battingFirst: ID; chasing: ID; target: number;
   source: { name: string; licence: string; url: string; note: string };
@@ -52,7 +53,7 @@ export interface Moment {
   fact: string;
 }
 
-export type ItemKind = 'clip' | 'text' | 'reaction';
+export type ItemKind = 'clip' | 'text' | 'reaction' | 'skip';
 export interface FeedItem {
   id: ID; memberId: ID; kind: ItemKind;
   anchorSeq: number; sentAt: number;
@@ -78,3 +79,14 @@ export interface GangCall {
   innings: 1 | 2; over: number; // the over the call is for
   status: 'open' | 'won' | 'lost';
 }
+
+/** A demo chapter ("Jump to moment"). Ball seqs index match.balls. */
+export interface Chapter {
+  id: ID; title: string; blurb: string;
+  startBallSeq: number; endBallSeq: number;
+  /** gang suggests stepping away after this ball */
+  nudgeSeq?: number;
+  /** if you stepped away before this ball, the gang calls you back on it */
+  callbackSeq?: number;
+}
+export interface ChapterFile { journeyStart: ID; chapters: Chapter[] }
