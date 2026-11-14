@@ -51,6 +51,7 @@ export async function resumeRoom() {
   audio.unlock();
   const e = newEngine(members, 'live', live.roomId);
   e.restore(live.feed.map((f) => ({ ...f, unheard: false })), live.calls, await loadSources(live.feed));
+  e.roomStart = live.roomStart;
   pending = { t: Math.max(0, live.videoTime - 3), silentUpTo: live.maxRevealed };
   patch({ selfLoyalty: live.loyalty, members, screen: 'live', mode: 'live', resumable: undefined, playhead: live.maxRevealed, toast: { text: 'Picked up where you left off.', at: Date.now() } });
 }

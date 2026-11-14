@@ -31,6 +31,15 @@ describe('Ducker (player.setVolume ramp)', () => {
     d.restore(); vi.advanceTimersByTime(250);
     expect(p.v).toBe(55);
   });
+  it('a clip that starts while the volume is still coming back up does not lose volume (regression)', () => {
+    const p = player(100); const d = new Ducker(() => p);
+    d.duck(); vi.advanceTimersByTime(250);
+    d.restore(); vi.advanceTimersByTime(30); // half-way back up (e.g. 90)
+    expect(p.v).toBeGreaterThan(20); expect(p.v).toBeLessThan(100);
+    d.duck(); vi.advanceTimersByTime(250);
+    d.restore(); vi.advanceTimersByTime(250);
+    expect(p.v).toBe(100);
+  });
   it('back-to-back clips stay ducked and restore once to the original volume', () => {
     const p = player(70); const d = new Ducker(() => p);
     d.duck(); vi.advanceTimersByTime(250); d.duck(); vi.advanceTimersByTime(250);

@@ -27,7 +27,7 @@ test('reviewer journey (real embed, live AI)', async ({ page }) => {
   await page.getByRole('button', { name: 'Back to the match' }).click();
   await page.locator('.catchup .cu-text').waitFor({ timeout: 10_000 }); await mark('catch-up shown'); await page.waitForTimeout(2500); await shot(page, '08-catchup');
   await page.getByRole('button', { name: 'Back to the banter' }).click();
-  await page.locator('.ball-w').nth(1).waitFor({ timeout: 90_000 }); await mark('WICKET slab (Kohli)'); await page.waitForTimeout(4000); await shot(page, '09-kohli');
+  await page.locator('.slab', { hasText: 'Kohli' }).waitFor({ timeout: 90_000 }); await mark('WICKET slab (Kohli)'); await page.waitForTimeout(4000); await shot(page, '09-kohli');
   await page.locator('.up-next').waitFor({ timeout: 90_000 }); await mark('up next'); await shot(page, '10-up-next');
   await page.getByRole('button', { name: 'Jump there now' }).click(); await mark('jumped to final chapter');
   await page.waitForTimeout(3000); await shot(page, '11-final-chapter');

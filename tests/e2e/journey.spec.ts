@@ -1,118 +1,179 @@
-// §17.4 end-to-end journeys. Speed-up via the hidden ?speed= debug control.
+// §17.4 end-to-end journeys (v1.2) with a MOCKED YouTube IFrame API (no network video in CI).
+// The fake player runs at E2E_RATE× real time on the real timeline, so chapters and ball sync are exercised for real.
 import { test, expect, type Page } from '@playwright/test';
 
-const SHOTS = process.env.E2E_SHOTS; // optional folder for screenshots
+const RATE = Number(process.env.E2E_RATE ?? 6);
 const isApi = (u: URL) => u.pathname.startsWith('/api/');
 
-async function shot(page: Page, name: string) { if (SHOTS) await page.screenshot({ path: `${SHOTS}/${name}.png` }); }
+/** A tiny stand-in for the IFrame API: real-time clock × rate, seek, volume log, and a way to raise onError. */
+const FAKE_YT = `
+(() => {
+  window.YT = { Player: function (el, o) {
+    const rate = window.__ytRate || 1; let base = (o.playerVars && o.playerVars.start) || 0, t0 = performance.now(), state = -1, vol = 100;
+    const now = () => state === 1 ? base + (performance.now() - t0) / 1000 * rate : base;
+    const box = document.createElement('div'); box.className = 'fake-yt'; box.textContent = 'Fake YouTube player';
+    (typeof el === 'string' ? document.getElementById(el) : el).replaceWith(box);
+    const set = (s) => { state = s; o.events && o.events.onStateChange && o.events.onStateChange({ data: s }); };
+    this.playVideo = () => { if (state !== 1) { base = now(); t0 = performance.now(); set(1); } };
+    this.pauseVideo = () => { base = now(); set(2); };
+    this.seekTo = (t) => { base = t; t0 = performance.now(); (window.__seeks = window.__seeks || []).push(t); };
+    this.getCurrentTime = () => now(); this.getPlayerState = () => state;
+    this.setVolume = (v) => { vol = v; (window.__vols = window.__vols || []).push(v); }; this.getVolume = () => vol;
+    this.unMute = () => {}; this.isMuted = () => false; this.destroy = () => {};
+    window.__ytFake = { error: (c) => o.events && o.events.onError && o.events.onError({ data: c }), seek: (t) => this.seekTo(t), now };
+    setTimeout(() => o.events && o.events.onReady && o.events.onReady(), 30);
+  } };
+  setTimeout(() => window.onYouTubeIframeAPIReady && window.onYouTubeIframeAPIReady(), 0);
+})();`;
 
-async function joinAndStart(page: Page, speed: number) {
-  await page.goto(`/?speed=${speed}`);
-  await expect(page.getByText('are simulated friends', { exact: false })).toBeVisible(); // FR-002 disclosure before joining
-  await shot(page, '01-landing');
-  await page.getByRole('button', { name: "Join the gang's room" }).click();
-  await expect(page.getByRole('button', { name: 'Start the match' })).toBeDisabled(); // FR-003: team required
-  await page.getByRole('button', { name: 'Pick for me' }).click();
-  await shot(page, '02-setup');
-  await page.getByRole('button', { name: 'Start the match' }).click();
-  await expect(page.locator('.broadcast')).toBeVisible();
+async function mockYouTube(page: Page, rate = RATE) {
+  await page.addInitScript((r) => { (window as unknown as { __ytRate: number }).__ytRate = r; }, rate);
+  await page.route('https://www.youtube.com/iframe_api', (r) => r.fulfill({ contentType: 'text/javascript', body: FAKE_YT }));
+}
+async function start(page: Page, hero?: string) {
+  await page.goto(`/?speed=${RATE}`); // ?speed only affects the scoreboard fallback's clock
+  await expect(page.getByText('are AI friends', { exact: false })).toBeVisible(); // FR-002: disclosure before joining
+  if (hero) await page.getByRole('radio', { name: hero }).click();
+  await page.getByRole('button', { name: 'Watch with the gang' }).click();
+  await expect(page.locator('.fake-yt')).toBeVisible();
 }
 
-async function fullJourney(page: Page, speed: number, opts: { expectLive: boolean }) {
-  await joinAndStart(page, speed);
-  // moment card → send a line (FR-014/016)
-  const send = page.locator('.moment li button', { hasText: 'Send' }).first();
-  await send.waitFor({ timeout: 120_000 });
-  await shot(page, '03-moment-card');
-  const line = (await page.locator('.moment li span').first().textContent())!;
+async function journey(page: Page, opts: { live: boolean }) {
+  await start(page);
+  // no dead air: a gang line arrives within seconds of the chapter opening
+  await expect(page.locator('.v').first()).toBeVisible({ timeout: 15_000 });
+  // Gang Call for Topley's over → call a wicket
+  await page.getByRole('button', { name: 'Wicket this over' }).click();
+  // 2.4 Rohit lbw b Topley: the wicket slab, then your comeback line card (Rohit is your hero)
+  await expect(page.locator('.slab', { hasText: 'Rohit' })).toBeVisible({ timeout: 60_000 });
+  const send = page.getByRole('button', { name: 'Send it' });
+  await expect(send).toBeVisible({ timeout: 10_000 });
+  const line = (await page.locator('.line-text').textContent())!.replace(/[“”]/g, '');
   await send.click();
-  await expect(page.locator('.fi.self .tx', { hasText: line.slice(0, 20) })).toBeVisible();
-  // text + reaction (FR-011)
-  await page.getByLabel('Message the gang').fill('Ritu, your hero is still my hero');
-  await page.getByRole('button', { name: 'Send', exact: true }).last().click();
-  await page.getByRole('button', { name: 'React 😂' }).click();
-  if (opts.expectLive) await expect(page.locator('.src', { hasText: 'live AI' }).first()).toBeVisible({ timeout: 60_000 });
-  // step away when the gang nudges (FR-018)
-  await page.locator('.step.nudge').waitFor({ timeout: 150_000 });
-  await shot(page, '04-nudge');
-  await page.locator('.step.nudge').click();
+  await expect(page.locator('.v.self .v-text', { hasText: line.slice(0, 20) })).toBeVisible();
+  await page.getByRole('button', { name: 'React: Laughing' }).click();
+  await expect(page.locator('.v-react.self .v-emoji', { hasText: '😂' })).toBeVisible();
+  if (opts.live) await expect(page.locator('.chip-live').first()).toBeVisible({ timeout: 60_000 });
+  // the gang nudges you to step away → the panel goes away, the video time-skips (never covered)
+  await expect(page.locator('.step.nudge')).toBeVisible({ timeout: 30_000 });
+  await page.getByRole('button', { name: 'Step away' }).click();
   await expect(page.getByText('You stepped away')).toBeVisible();
-  await shot(page, '05-away');
-  // call-back
+  await expect(page.locator('.fake-yt')).toBeVisible();
+  // call-back from Dev at 11.1 (Kohli at the crease)
   const back = page.getByRole('button', { name: 'Back to the match' });
-  await back.waitFor({ timeout: 90_000 });
-  await shot(page, '06-callback');
+  await expect(back).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText('Dev is calling you back')).toBeVisible();
   await back.click();
-  // catch-up (FR-019) mentions every wicket in the window
-  const cu = page.getByRole('dialog', { name: 'While you were away' });
-  await expect(cu).toBeVisible();
-  await expect(cu.locator('p').first()).not.toHaveText(/filling you in/, { timeout: 10_000 });
-  if (opts.expectLive) await cu.locator('.src', { hasText: 'live AI' }).waitFor({ timeout: 12_000 }).catch(() => {}); // live summary may replace the fallback
-  await shot(page, '07-catchup');
-  await page.getByRole('button', { name: 'Rejoin the match' }).click();
-  // wrap (FR-020) and memory (FR-021)
-  await expect(page.getByRole('heading', { name: 'The audio reel' })).toBeVisible({ timeout: 150_000 });
+  // catch-up names every wicket you missed (AC-CATCH-1): Dhawan and Pant
+  const cu = page.locator('.catchup');
+  await expect(cu.locator('.cu-text')).toBeVisible({ timeout: 10_000 });
+  await expect(cu.locator('.cu-text')).toContainText('Dhawan');
+  await expect(cu.locator('.cu-text')).toContainText('Pant');
+  await page.getByRole('button', { name: 'Back to the banter' }).click();
+  // 11.2 Kohli c Buttler b Willey, live on screen after the call-back
+  await expect(page.locator('.slab', { hasText: 'Kohli' })).toBeVisible({ timeout: 30_000 });
+  // jump to the final wicket chapter → skipped balls become a catch-up line, not a burst
+  await page.getByRole('button', { name: /The final wicket/ }).click();
+  await expect(page.locator('.skip-line').last()).toContainText('Wickets:', { timeout: 15_000 });
+  // wrap + memory (FR-020/021)
+  await expect(page.getByRole('heading', { name: 'The audio reel' })).toBeVisible({ timeout: 90_000 });
   await expect(page.getByText('Saved to your memories.')).toBeVisible();
-  await shot(page, '08-wrap');
+  // the last lines may still be playing on the wrap screen: once the gang is quiet, the volume must be back
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __vols?: number[] }).__vols?.at(-1)), { timeout: 20_000 }).not.toBe(20);
+  const vols = await page.evaluate(() => (window as unknown as { __vols?: number[] }).__vols ?? []);
   await page.getByRole('button', { name: 'See your memory shelf' }).click();
   await expect(page.locator('.mem')).toHaveCount(1);
   await page.reload();
   await page.getByRole('button', { name: /Your memories \(1\)/ }).click(); // AC-MEM-2: survives reload
   await page.locator('.mem').first().click();
   await expect(page.locator('.timeline li').first()).toBeVisible();
-  await shot(page, '09-shelf');
+  return { vols };
 }
 
-test('full journey with live AI', async ({ page }) => {
-  test.skip(!!process.env.E2E_NO_LIVE, 'live AI disabled');
-  await fullJourney(page, Number(process.env.E2E_SPEED ?? 5), { expectLive: true });
-});
-
-test('AI offline: journey still completes with fallbacks', async ({ page }) => {
+test('reviewer journey on a mocked YouTube player, AI offline (fallback lines)', async ({ page }) => {
+  await mockYouTube(page);
   await page.route(isApi, (r) => r.abort());
-  await fullJourney(page, 8, { expectLive: false });
+  const { vols } = await journey(page, { live: false });
+  // ducking went through player.setVolume: down to 20 while a clip played, then back to 100
+  expect(vols.length).toBeGreaterThan(0);
+  expect(Math.min(...vols)).toBe(20);
+  expect(vols.at(-1)).toBe(100);
 });
 
-test('mic denied: text and reactions still work', async ({ browser }) => {
+test('reviewer journey with live AI (mocked YouTube)', async ({ page }) => {
+  test.skip(!!process.env.E2E_NO_LIVE, 'live AI disabled');
+  await mockYouTube(page);
+  await journey(page, { live: true });
+});
+
+test('embed error → automatic scoreboard fallback at the same ball, nothing re-delivered', async ({ page }) => {
+  await mockYouTube(page);
+  await page.route(isApi, (r) => r.abort());
+  await start(page);
+  await expect(page.locator('.v').first()).toBeVisible({ timeout: 15_000 });
+  const before = await page.locator('.v').count();
+  const ball = await page.locator('.nb-label b').textContent();
+  await page.evaluate(() => (window as unknown as { __ytFake: { error: (c: number) => void } }).__ytFake.error(150));
+  await expect(page.locator('.board')).toBeVisible();
+  await expect(page.getByText("couldn't play here")).toBeVisible();
+  await expect(page.locator('.nb-label b')).toHaveText(ball!);
+  expect(await page.locator('.v').count()).toBeGreaterThanOrEqual(before);
+  // and the match carries on in the fallback: Rohit's wicket still lands
+  await expect(page.locator('.slab', { hasText: 'Rohit' })).toBeVisible({ timeout: 60_000 });
+});
+
+test('seek backwards never re-delivers lines (spoiler rule)', async ({ page }) => {
+  await mockYouTube(page);
+  await page.route(isApi, (r) => r.abort());
+  await start(page);
+  await expect(page.locator('.slab', { hasText: 'Rohit' })).toBeVisible({ timeout: 60_000 });
+  const n = await page.locator('.v').count();
+  await page.evaluate(() => (window as unknown as { __ytFake: { seek: (t: number) => void } }).__ytFake.seek(13_840));
+  await expect(page.locator('.nb-label b')).toHaveText('1.6', { timeout: 5_000 });
+  await page.waitForTimeout(6_000); // replays balls 2.1–2.4 on screen
+  expect(await page.locator('.v').count()).toBe(n);
+  expect(await page.locator('.slab').count()).toBe(1);
+});
+
+test('mic denied: reactions and the gang’s lines still work (no typing during play)', async ({ browser }) => {
   const ctx = await browser.newContext({ permissions: [] });
   const page = await ctx.newPage();
-  await page.addInitScript(() => {
-    navigator.mediaDevices.getUserMedia = () => Promise.reject(new DOMException('denied', 'NotAllowedError'));
-  });
+  await page.addInitScript(() => { navigator.mediaDevices.getUserMedia = () => Promise.reject(new DOMException('denied', 'NotAllowedError')); });
+  await mockYouTube(page);
   await page.route(isApi, (r) => r.abort());
-  await joinAndStart(page, 4);
-  const talk = page.getByRole('button', { name: /Hold to talk/ });
-  await talk.dispatchEvent('pointerdown');
-  await expect(page.getByText('Mic off. Type or react instead.')).toBeVisible();
-  await page.getByLabel('Message the gang').fill('typing instead');
-  await page.keyboard.press('Enter');
-  await expect(page.locator('.fi.self .tx', { hasText: 'typing instead' })).toBeVisible();
+  await start(page);
+  await page.getByRole('button', { name: /Hold to talk/ }).dispatchEvent('pointerdown');
+  await expect(page.getByText('Mic is off.', { exact: false })).toBeVisible();
+  await expect(page.locator('input[type="text"], textarea')).toHaveCount(0);
+  await page.getByRole('button', { name: 'React: Fire' }).click();
+  await expect(page.locator('.v-react.self')).toBeVisible();
   await ctx.close();
 });
 
 test('reload mid-match resumes the room', async ({ page }) => {
+  await mockYouTube(page);
   await page.route(isApi, (r) => r.abort());
-  await joinAndStart(page, 6);
-  await page.getByLabel('Message the gang').fill('remember me');
-  await page.keyboard.press('Enter');
-  await page.waitForTimeout(9_000); // let a few balls pass so progress is saved
+  await start(page);
+  await page.getByRole('button', { name: 'React: Crying' }).click();
+  await page.waitForTimeout(9_500); // progress is saved every ~8 s
   await page.reload();
-  const resume = page.getByRole('button', { name: /Resume your match at/ });
+  const resume = page.getByRole('button', { name: /Resume at/ });
   await expect(resume).toBeVisible();
   await resume.click();
-  await expect(page.locator('.fi.self .tx', { hasText: 'remember me' })).toBeVisible();
+  await expect(page.locator('.v-react.self .v-emoji', { hasText: '😭' })).toBeVisible();
   await expect(page.getByText('Picked up where you left off.')).toBeVisible();
 });
 
-test('hold-to-talk records a clip with the fake mic', async ({ page }) => {
-  await page.route((u) => u.pathname === '/api/transcribe', (r) => r.fulfill({ json: { text: 'Dev your swing king is in trouble' } }));
-  await page.route((u) => u.pathname === '/api/reply', (r) => r.abort());
-  await joinAndStart(page, 2);
+test('hold-to-talk records a clip with the fake mic (live waveform while recording)', async ({ page }) => {
+  await mockYouTube(page);
+  await page.route((u) => u.pathname === '/api/transcribe', (r) => r.fulfill({ json: { text: 'Dev your king is in trouble' } }));
+  await page.route((u) => u.pathname === '/api/reply' || u.pathname === '/api/react' || u.pathname === '/api/speak', (r) => r.abort());
+  await start(page);
   const talk = page.getByRole('button', { name: /Hold to talk/ });
   await talk.dispatchEvent('pointerdown');
-  await expect(page.getByText(/Recording/)).toBeVisible();
+  await expect(page.locator('.talk.rec .talk-wave')).toBeVisible();
   await page.waitForTimeout(1200);
   await talk.dispatchEvent('pointerup');
-  await expect(page.locator('.fi.self .clip')).toBeVisible({ timeout: 3_000 }); // AC-VOICE-1
-  await expect(page.locator('.fi.self .tx', { hasText: 'swing king' })).toBeVisible();
+  await expect(page.locator('.v.self .v-play')).toBeVisible({ timeout: 3_000 }); // AC-VOICE-1
+  await expect(page.locator('.v.self .v-text', { hasText: 'king is in trouble' })).toBeVisible();
 });

@@ -33,7 +33,7 @@ export interface SavedRoom {
   id: string; matchId: string; title: string; date: string; endedAt: number; result: string;
   loyalty: Member['loyalty']; feed: FeedItem[]; calls: GangCall[]; wrap?: WrapState;
 }
-export interface LiveSnapshot { roomId: string; videoTime: number; maxRevealed: number; loyalty: Member['loyalty']; feed: FeedItem[]; calls: GangCall[]; label: string }
+export interface LiveSnapshot { roomId: string; videoTime: number; maxRevealed: number; roomStart?: number; loyalty: Member['loyalty']; feed: FeedItem[]; calls: GangCall[]; label: string }
 
 /** How far ahead (video seconds) we ask Gemini for lines, and what counts as urgent. */
 export const LOOKAHEAD_S = 240;
@@ -75,6 +75,8 @@ export class RoomEngine {
   private lastPersistAt = 0;
   private lastTimePatch = -1;
   private awaitCallback = false;
+  /** first ball of this room: the wrap and its stats only count what happened from here on */
+  roomStart?: number;
 
   constructor(public match: Match, public members: Member[], public timeline: Timeline, public chapters: Chapter[],
     public mode: 'live' | 'rewatch' = 'live', public roomId = uid()) {
@@ -104,6 +106,7 @@ export class RoomEngine {
   start(t: number, opts: { silentUpTo?: number } = {}) {
     audio.unlock();
     const seenUpTo = opts.silentUpTo ?? this.timeline.ballAt(t) - 1;
+    this.roomStart ??= Math.max(0, this.timeline.ballAt(t));
     this.tracker.resetTo(seenUpTo);
     patch({ plan: this.plan, status: 'live', roomId: this.roomId, position: seenUpTo, playhead: Math.max(room().playhead, seenUpTo), videoTime: t });
     this.source?.seekTo(t);
@@ -323,7 +326,7 @@ export class RoomEngine {
     const marker: FeedItem[] = away ? [] : [{ id: `skip-${from}-${to}`, memberId: SELF_ID, kind: 'skip', anchorSeq: to - 1, sentAt: Date.now(),
       text: `Skipped ${this.match.balls[Math.min(from + 1, to - 1)].label} to ${this.match.balls[to - 1].label}. ${this.scoreText(to - 1)}${wk.length ? `. Wickets: ${wk.join(', ')}` : ''}.`,
       source: 'template' }];
-    patch({ feed: [...room().feed, ...fresh, ...marker], playhead: Math.max(room().playhead, to - 1) });
+    patch({ feed: [...room().feed, ...marker, ...fresh], playhead: Math.max(room().playhead, to - 1) });
     this.updateCalls(to - 1);
     this.onRevealed(to);
   }
@@ -542,10 +545,11 @@ export class RoomEngine {
     this.source?.pause();
     patch({ status: 'ended', card: undefined, callOffer: undefined, catchup: undefined, away: undefined });
     const st = room();
-    const stats = computeStats(this.members, this.plan.moments.filter((m) => m.ballSeq <= st.playhead), st.feed, st.calls, SELF_ID);
+    const inRoom = (seq: number) => seq >= (this.roomStart ?? 0) && seq <= st.playhead;
+    const stats = computeStats(this.members, this.plan.moments.filter((m) => inRoom(m.ballSeq)), st.feed, st.calls, SELF_ID);
     const highlights = st.feed.filter((f) => f.text && f.kind !== 'reaction' && f.kind !== 'skip').slice(-50)
       .map((f) => ({ itemId: f.id, who: f.memberId === SELF_ID ? 'You' : this.member(f.memberId).name, text: f.text!.slice(0, 200), seq: f.anchorSeq }));
-    const moments = this.plan.moments.filter((m) => m.ruleId !== 'R7' && m.ballSeq <= st.playhead).slice(0, 30).map((m) => ({ seq: m.ballSeq, text: m.headline }));
+    const moments = this.plan.moments.filter((m) => m.ruleId !== 'R7' && inRoom(m.ballSeq)).slice(0, 30).map((m) => ({ seq: m.ballSeq, text: m.headline }));
     patch({ screen: 'wrap', wrap: undefined });
     const ai = await api.wrap({
       match: this.match.title, result: st.playhead >= this.match.balls.length - 1 ? this.match.result : `Stopped at ${this.scoreText(st.playhead)}`,
@@ -555,7 +559,7 @@ export class RoomEngine {
     const clipIds = st.feed.filter((f) => f.kind === 'clip' && f.audioKey && this.audioSrc.has(f.audioKey));
     const fallbackReel = [...clipIds].sort((a, b) => (b.text?.length ?? 0) - (a.text?.length ?? 0)).slice(0, 3).sort((a, b) => a.anchorSeq - b.anchorSeq).map((f) => f.id);
     const roastFallback = st.feed.find((f) => f.intent === 'tease' && f.text);
-    const loudest = this.plan.moments.find((m) => m.severity === 3 && m.ruleId !== 'R7' && m.ballSeq <= st.playhead);
+    const loudest = this.plan.moments.find((m) => m.severity === 3 && m.ruleId !== 'R7' && inRoom(m.ballSeq));
     const roasted = stats.mostRoasted ? (stats.mostRoasted.memberId === SELF_ID ? 'You' : this.member(stats.mostRoasted.memberId).name) : undefined;
     const valid = (ids: string[]) => ids.filter((id) => clipIds.some((c) => c.id === id));
     const wrap: WrapState = ai ? {
@@ -586,7 +590,7 @@ export class RoomEngine {
   private async persistLive() {
     const st = room();
     if (st.status !== 'live' || this.mode !== 'live' || !this.source) return;
-    const snap: LiveSnapshot = { roomId: this.roomId, videoTime: this.source.getCurrentTime(), maxRevealed: this.tracker.maxRevealed, loyalty: this.member(SELF_ID).loyalty, feed: st.feed, calls: st.calls, label: this.scoreText(Math.max(0, st.playhead)) };
+    const snap: LiveSnapshot = { roomId: this.roomId, videoTime: this.source.getCurrentTime(), maxRevealed: this.tracker.maxRevealed, roomStart: this.roomStart, loyalty: this.member(SELF_ID).loyalty, feed: st.feed, calls: st.calls, label: this.scoreText(Math.max(0, st.playhead)) };
     await storage.putLive(snap);
   }
 
