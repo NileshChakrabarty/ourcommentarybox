@@ -11,8 +11,9 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "smoke": "node --env-file=.env scripts/smoke.mjs",
-    "data": "tsx data/scripts/convert-match.ts",
-    "precompute": "tsx --env-file=.env data/scripts/precompute.ts"
+    "data": "tsx data/scripts/convert-match.ts && tsx data/scripts/build-timeline.ts",
+    "precompute": "tsx --env-file=.env data/scripts/precompute.ts",
+    "timeline": "tsx data/scripts/build-timeline.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

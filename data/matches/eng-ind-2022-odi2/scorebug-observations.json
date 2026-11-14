@@ -1,0 +1,593 @@
+{
+  "note": "Readings of the broadcast scorebug in the embedded ECB YouTube player (video UnRMj4ZC12o), sampled in an automated browser on 2026-11-14. Viewing only: no video or frames are stored in the repo. kind=first: the first 4-second sample showing this state (ball result visible about 3 s earlier). kind=snapshot: a one-off sample (the ball happened up to ~40 s earlier). The owner can refine any ball with /dev/tag; manual tags always win.",
+  "obs": [
+    {
+      "t": 300,
+      "inn": 1,
+      "overs": "1.0",
+      "score": "2-0",
+      "kind": "snapshot"
+    },
+    {
+      "t": 900,
+      "inn": 1,
+      "overs": "3.1",
+      "score": "11-0",
+      "kind": "snapshot"
+    },
+    {
+      "t": 1500,
+      "inn": 1,
+      "overs": "5.3",
+      "score": "31-0",
+      "kind": "snapshot"
+    },
+    {
+      "t": 2100,
+      "inn": 1,
+      "overs": "7.4",
+      "score": "40-0",
+      "kind": "snapshot"
+    },
+    {
+      "t": 2700,
+      "inn": 1,
+      "overs": "9.0",
+      "score": "41-1",
+      "kind": "snapshot"
+    },
+    {
+      "t": 3300,
+      "inn": 1,
+      "overs": "11.1",
+      "score": "50-1",
+      "kind": "snapshot"
+    },
+    {
+      "t": 3900,
+      "inn": 1,
+      "overs": "13.2",
+      "score": "63-1",
+      "kind": "snapshot"
+    },
+    {
+      "t": 4500,
+      "inn": 1,
+      "overs": "16.0",
+      "score": "78-2",
+      "kind": "snapshot"
+    },
+    {
+      "t": 5100,
+      "inn": 1,
+      "overs": "17.4",
+      "score": "82-3",
+      "kind": "snapshot"
+    },
+    {
+      "t": 5400,
+      "inn": 1,
+      "overs": "18.4",
+      "score": "87-4",
+      "kind": "snapshot"
+    },
+    {
+      "t": 6600,
+      "inn": 1,
+      "overs": "22.1",
+      "score": "104-5",
+      "kind": "snapshot"
+    },
+    {
+      "t": 6900,
+      "inn": 1,
+      "overs": "23.2",
+      "score": "112-5",
+      "kind": "snapshot"
+    },
+    {
+      "t": 7500,
+      "inn": 1,
+      "overs": "25.5",
+      "score": "125-5",
+      "kind": "snapshot"
+    },
+    {
+      "t": 8100,
+      "inn": 1,
+      "overs": "28.1",
+      "score": "133-5",
+      "kind": "snapshot"
+    },
+    {
+      "t": 8700,
+      "inn": 1,
+      "overs": "30.3",
+      "score": "152-6",
+      "kind": "snapshot"
+    },
+    {
+      "t": 9300,
+      "inn": 1,
+      "overs": "33.4",
+      "score": "160-6",
+      "kind": "snapshot"
+    },
+    {
+      "t": 9900,
+      "inn": 1,
+      "overs": "36.4",
+      "score": "177-6",
+      "kind": "snapshot"
+    },
+    {
+      "t": 10500,
+      "inn": 1,
+      "overs": "39.0",
+      "score": "194-6",
+      "kind": "snapshot"
+    },
+    {
+      "t": 11100,
+      "inn": 1,
+      "overs": "41.4",
+      "score": "209-6",
+      "kind": "snapshot"
+    },
+    {
+      "t": 11400,
+      "inn": 1,
+      "overs": "42.3",
+      "score": "212-7",
+      "kind": "snapshot"
+    },
+    {
+      "t": 11730,
+      "inn": 1,
+      "overs": "44.0",
+      "score": "215-7",
+      "kind": "snapshot"
+    },
+    {
+      "t": 12000,
+      "inn": 1,
+      "overs": "45.0",
+      "score": "222-7",
+      "kind": "snapshot"
+    },
+    {
+      "t": 12300,
+      "inn": 1,
+      "overs": "46.0",
+      "score": "227-7",
+      "kind": "snapshot"
+    },
+    {
+      "t": 12900,
+      "inn": 1,
+      "overs": "47.3",
+      "score": "240-8",
+      "kind": "snapshot"
+    },
+    {
+      "t": 13050,
+      "inn": 1,
+      "overs": "47.5",
+      "score": "242-9",
+      "kind": "snapshot"
+    },
+    {
+      "t": 13200,
+      "inn": 1,
+      "overs": "48.1",
+      "score": "244-9",
+      "kind": "snapshot"
+    },
+    {
+      "t": 13300,
+      "inn": 1,
+      "overs": "48.3",
+      "score": "244-9",
+      "kind": "snapshot"
+    },
+    {
+      "t": 13400,
+      "inn": 1,
+      "overs": "49.0",
+      "score": "246-10",
+      "kind": "snapshot"
+    },
+    {
+      "t": 13500,
+      "inn": 2,
+      "overs": "0.4",
+      "score": "0-0",
+      "kind": "snapshot"
+    },
+    {
+      "t": 13644,
+      "inn": 2,
+      "overs": "1.1",
+      "score": "0-0",
+      "kind": "first"
+    },
+    {
+      "t": 13672,
+      "inn": 2,
+      "overs": "1.2",
+      "score": "0-0",
+      "kind": "first"
+    },
+    {
+      "t": 13704,
+      "inn": 2,
+      "overs": "1.3",
+      "score": "0-0",
+      "kind": "first"
+    },
+    {
+      "t": 13740,
+      "inn": 2,
+      "overs": "1.4",
+      "score": "0-0",
+      "kind": "first"
+    },
+    {
+      "t": 13768,
+      "inn": 2,
+      "overs": "1.5",
+      "score": "0-0",
+      "kind": "first"
+    },
+    {
+      "t": 13820,
+      "inn": 2,
+      "overs": "2.0",
+      "score": "0-0",
+      "kind": "first"
+    },
+    {
+      "t": 13852,
+      "inn": 2,
+      "overs": "2.1",
+      "score": "0-0",
+      "kind": "first"
+    },
+    {
+      "t": 13888,
+      "inn": 2,
+      "overs": "2.2",
+      "score": "4-0",
+      "kind": "first"
+    },
+    {
+      "t": 13920,
+      "inn": 2,
+      "overs": "2.3",
+      "score": "4-0",
+      "kind": "first"
+    },
+    {
+      "t": 13952,
+      "inn": 2,
+      "overs": "2.4",
+      "score": "4-1",
+      "kind": "first"
+    },
+    {
+      "t": 14132,
+      "inn": 2,
+      "overs": "2.5",
+      "score": "5-1",
+      "kind": "first"
+    },
+    {
+      "t": 14400,
+      "inn": 2,
+      "overs": "4.0",
+      "score": "5-1",
+      "kind": "snapshot"
+    },
+    {
+      "t": 14730,
+      "inn": 2,
+      "overs": "5.3",
+      "score": "10-1",
+      "kind": "snapshot"
+    },
+    {
+      "t": 15300,
+      "inn": 2,
+      "overs": "7.5",
+      "score": "22-1",
+      "kind": "snapshot"
+    },
+    {
+      "t": 15600,
+      "inn": 2,
+      "overs": "8.5",
+      "score": "27-2",
+      "kind": "snapshot"
+    },
+    {
+      "t": 15688,
+      "inn": 2,
+      "overs": "9.0",
+      "score": "27-2",
+      "kind": "first"
+    },
+    {
+      "t": 15768,
+      "inn": 2,
+      "overs": "9.1",
+      "score": "27-2",
+      "kind": "first"
+    },
+    {
+      "t": 15800,
+      "inn": 2,
+      "overs": "9.2",
+      "score": "27-2",
+      "kind": "first"
+    },
+    {
+      "t": 15832,
+      "inn": 2,
+      "overs": "9.3",
+      "score": "28-2",
+      "kind": "first"
+    },
+    {
+      "t": 15892,
+      "inn": 2,
+      "overs": "9.4",
+      "score": "28-2",
+      "kind": "first"
+    },
+    {
+      "t": 15924,
+      "inn": 2,
+      "overs": "9.5",
+      "score": "28-2",
+      "kind": "first"
+    },
+    {
+      "t": 15960,
+      "inn": 2,
+      "overs": "10.0",
+      "score": "28-2",
+      "kind": "first"
+    },
+    {
+      "t": 16036,
+      "inn": 2,
+      "overs": "10.1",
+      "score": "29-2",
+      "kind": "first"
+    },
+    {
+      "t": 16072,
+      "inn": 2,
+      "overs": "10.2",
+      "score": "29-3",
+      "kind": "first"
+    },
+    {
+      "t": 16172,
+      "inn": 2,
+      "overs": "10.3",
+      "score": "30-3",
+      "kind": "first"
+    },
+    {
+      "t": 16204,
+      "inn": 2,
+      "overs": "10.4",
+      "score": "30-3",
+      "kind": "first"
+    },
+    {
+      "t": 16240,
+      "inn": 2,
+      "overs": "10.5",
+      "score": "31-3",
+      "kind": "first"
+    },
+    {
+      "t": 16272,
+      "inn": 2,
+      "overs": "11.0",
+      "score": "31-3",
+      "kind": "first"
+    },
+    {
+      "t": 16328,
+      "inn": 2,
+      "overs": "11.1",
+      "score": "31-3",
+      "kind": "first"
+    },
+    {
+      "t": 16364,
+      "inn": 2,
+      "overs": "11.2",
+      "score": "31-4",
+      "kind": "first"
+    },
+    {
+      "t": 16512,
+      "inn": 2,
+      "overs": "11.3",
+      "score": "32-4",
+      "kind": "first"
+    },
+    {
+      "t": 16800,
+      "inn": 2,
+      "overs": "12.2",
+      "score": "38-4",
+      "kind": "snapshot"
+    },
+    {
+      "t": 17130,
+      "inn": 2,
+      "overs": "13.5",
+      "score": "45-4",
+      "kind": "snapshot"
+    },
+    {
+      "t": 17700,
+      "inn": 2,
+      "overs": "16.2",
+      "score": "58-4",
+      "kind": "snapshot"
+    },
+    {
+      "t": 18300,
+      "inn": 2,
+      "overs": "19.1",
+      "score": "70-4",
+      "kind": "snapshot"
+    },
+    {
+      "t": 18900,
+      "inn": 2,
+      "overs": "21.4",
+      "score": "76-5",
+      "kind": "snapshot"
+    },
+    {
+      "t": 19500,
+      "inn": 2,
+      "overs": "24.1",
+      "score": "85-5",
+      "kind": "snapshot"
+    },
+    {
+      "t": 20100,
+      "inn": 2,
+      "overs": "27.0",
+      "score": "101-5",
+      "kind": "snapshot"
+    },
+    {
+      "t": 20700,
+      "inn": 2,
+      "overs": "29.2",
+      "score": "113-6",
+      "kind": "snapshot"
+    },
+    {
+      "t": 21000,
+      "inn": 2,
+      "overs": "30.4",
+      "score": "126-6",
+      "kind": "snapshot"
+    },
+    {
+      "t": 21330,
+      "inn": 2,
+      "overs": "32.0",
+      "score": "131-6",
+      "kind": "snapshot"
+    },
+    {
+      "t": 21900,
+      "inn": 2,
+      "overs": "34.4",
+      "score": "139-6",
+      "kind": "snapshot"
+    },
+    {
+      "t": 22476,
+      "inn": 2,
+      "overs": "37.0",
+      "score": "141-8",
+      "kind": "first"
+    },
+    {
+      "t": 22496,
+      "inn": 2,
+      "overs": "37.1",
+      "score": "142-8",
+      "kind": "first"
+    },
+    {
+      "t": 22528,
+      "inn": 2,
+      "overs": "37.2",
+      "score": "144-8",
+      "kind": "first"
+    },
+    {
+      "t": 22540,
+      "inn": 2,
+      "overs": "37.3",
+      "score": "144-8",
+      "kind": "first"
+    },
+    {
+      "t": 22556,
+      "inn": 2,
+      "overs": "37.4",
+      "score": "144-8",
+      "kind": "first"
+    },
+    {
+      "t": 22572,
+      "inn": 2,
+      "overs": "37.5",
+      "score": "145-8",
+      "kind": "first"
+    },
+    {
+      "t": 22592,
+      "inn": 2,
+      "overs": "38.0",
+      "score": "145-8",
+      "kind": "first"
+    },
+    {
+      "t": 22620,
+      "inn": 2,
+      "overs": "38.1",
+      "score": "145-8",
+      "kind": "first"
+    },
+    {
+      "t": 22644,
+      "inn": 2,
+      "overs": "38.2",
+      "score": "145-9",
+      "kind": "first"
+    },
+    {
+      "t": 22752,
+      "inn": 2,
+      "overs": "38.2",
+      "score": "146-9",
+      "kind": "first"
+    },
+    {
+      "t": 22780,
+      "inn": 2,
+      "overs": "38.3",
+      "score": "146-9",
+      "kind": "first"
+    },
+    {
+      "t": 22800,
+      "inn": 2,
+      "overs": "38.4",
+      "score": "146-9",
+      "kind": "first"
+    },
+    {
+      "t": 22832,
+      "inn": 2,
+      "overs": "38.5",
+      "score": "146-10",
+      "kind": "first"
+    }
+  ]
+}
