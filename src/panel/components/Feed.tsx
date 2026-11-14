@@ -48,7 +48,7 @@ export function Feed() {
   const groups: { seq: number; items: FeedItem[] }[] = [];
   for (const it of feed) {
     const g = groups.at(-1);
-    if (g && g.seq === it.anchorSeq && it.kind !== 'skip') g.items.push(it); else groups.push({ seq: it.anchorSeq, items: [it] });
+    if (g && g.seq === it.anchorSeq && it.kind !== 'skip' && g.items[0].kind !== 'skip') g.items.push(it); else groups.push({ seq: it.anchorSeq, items: [it] });
   }
   const playingId = speakingId ? [...feed].reverse().find((f) => f.memberId === speakingId && f.kind === 'clip')?.id : undefined;
 

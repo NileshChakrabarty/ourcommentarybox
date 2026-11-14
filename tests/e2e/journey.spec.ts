@@ -40,10 +40,10 @@ async function start(page: Page, hero?: string) {
 
 async function journey(page: Page, opts: { live: boolean }) {
   await start(page);
+  // Gang Call for Topley's over → call a wicket before the first ball (calls lock when the over starts)
+  await page.getByRole('button', { name: 'Wicket this over' }).click({ timeout: 5_000 });
   // no dead air: a gang line arrives within seconds of the chapter opening
   await expect(page.locator('.v').first()).toBeVisible({ timeout: 15_000 });
-  // Gang Call for Topley's over → call a wicket
-  await page.getByRole('button', { name: 'Wicket this over' }).click();
   // 2.4 Rohit lbw b Topley: the wicket slab, then your comeback line card (Rohit is your hero)
   await expect(page.locator('.slab', { hasText: 'Rohit' })).toBeVisible({ timeout: 60_000 });
   const send = page.getByRole('button', { name: 'Send it' });
@@ -52,8 +52,8 @@ async function journey(page: Page, opts: { live: boolean }) {
   await send.click();
   await expect(page.locator('.v.self .v-text', { hasText: line.slice(0, 20) })).toBeVisible();
   await page.getByRole('button', { name: 'React: Laughing' }).click();
+
   await expect(page.locator('.v-react.self .v-emoji', { hasText: '😂' })).toBeVisible();
-  if (opts.live) await expect(page.locator('.chip-live').first()).toBeVisible({ timeout: 60_000 });
   // the gang nudges you to step away → the panel goes away, the video time-skips (never covered)
   await expect(page.locator('.step.nudge')).toBeVisible({ timeout: 30_000 });
   await page.getByRole('button', { name: 'Step away' }).click();
@@ -72,6 +72,7 @@ async function journey(page: Page, opts: { live: boolean }) {
   await page.getByRole('button', { name: 'Back to the banter' }).click();
   // 11.2 Kohli c Buttler b Willey, live on screen after the call-back
   await expect(page.locator('.slab', { hasText: 'Kohli' })).toBeVisible({ timeout: 30_000 });
+  if (opts.live) await expect(page.locator('.chip-live').first()).toBeAttached({ timeout: 30_000 }); // lines written live by Gemini
   // jump to the final wicket chapter → skipped balls become a catch-up line, not a burst
   await page.getByRole('button', { name: /The final wicket/ }).click();
   await expect(page.locator('.skip-line').last()).toContainText('Wickets:', { timeout: 15_000 });

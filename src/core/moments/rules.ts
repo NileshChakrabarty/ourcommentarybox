@@ -97,6 +97,15 @@ export function cardsForUser(match: Match, moments: Moment[], selfId: ID): Momen
 }
 
 export type CardKind = 'tease' | 'comeback' | 'brag';
+
+/** Who the user's card is aimed at. Shared by the live engine and the precompute script so both agree. */
+export function cardTargetFor(m: Moment, kind: CardKind, selfId: ID, beatsAtBall: { targetId?: ID; friendId: ID }[], moments: Moment[], firstFriendId: ID): ID | undefined {
+  if (kind === 'tease') return m.victimId;
+  const teaser = beatsAtBall.find((b) => b.targetId === selfId)?.friendId;
+  if (kind === 'comeback') return teaser ?? firstFriendId;
+  const r1 = moments.find((x) => x.ballSeq === m.ballSeq && x.ruleId === 'R1' && x.victimId !== selfId)?.victimId;
+  return r1 ?? teaser ?? firstFriendId;
+}
 export function cardKind(m: Moment, selfId: ID): CardKind {
   if (m.victimId === selfId) return 'comeback';
   if (m.victimId) return 'tease';

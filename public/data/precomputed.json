@@ -84,10 +84,6 @@
    "text": "Last pair in, brothers. One forty-six for nine, and Topley is running in to Prasidh.",
    "audio": "/audio/friends/534-dev-setup.mp3"
   },
-  "535-ritu-chatter": {
-   "text": "Another dot. We are really stretching this suspense out.",
-   "audio": "/audio/friends/535-ritu-chatter.mp3"
-  },
   "536-dev-final": {
    "text": "Well fought, bhai, we fell short today, but we will bounce back stronger next time.",
    "audio": "/audio/friends/536-dev-final.mp3"
@@ -95,6 +91,14 @@
   "536-sunny-final": {
    "text": "Told you all from the very first over. Nothing surprising here at all.",
    "audio": "/audio/friends/536-sunny-final.mp3"
+  },
+  "369-ritu-chatter": {
+   "text": "Another dot ball, bro. At this rate we are going to need a time machine.",
+   "audio": "/audio/friends/369-ritu-chatter.mp3"
+  },
+  "535-sunny-chatter": {
+   "text": "Just one wicket left. The inevitable is finally arriving.",
+   "audio": "/audio/friends/535-sunny-chatter.mp3"
   }
  },
  "cards": {

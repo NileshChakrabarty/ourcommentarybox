@@ -127,11 +127,14 @@ export function planBeats(match: Match, members: Member[], moments: Moment[], se
         fact: `${stateLine(match, s)}. ${name(next.bowlerId)} is about to bowl to ${name(next.batterId)}. Set the scene for the gang; no predictions of what happens.` });
     }
     for (let seq = ch.startBallSeq; seq <= ch.endBallSeq; seq++) {
-      if (beats.some((b) => b.seq === seq)) continue;
+      // a call-back only plays if you stepped away, so that ball still gets chatter for everyone else
+      if (beats.some((b) => b.seq === seq && b.intent !== 'callback')) continue;
       const b = match.balls[seq];
       if (b.extraType === 'wd' && seq % 2) continue; // not every wide needs a comment
       const lastSpeaker = beats.filter((x) => x.seq < seq).at(-1)?.friendId;
-      const f = [...friends].filter((x) => x.id !== lastSpeaker).sort((a, c) => count(a.id) - count(c.id))[0];
+      const busy = new Set(beats.filter((x) => x.seq === seq).map((x) => x.friendId));
+      const f = [...friends].filter((x) => x.id !== lastSpeaker && !busy.has(x.id)).sort((a, c) => count(a.id) - count(c.id))[0];
+      if (!f) continue;
       add({ seq, friendId: f.id, intent: 'chatter', stable: true, fact: `${b.text} ${stateLine(match, snaps[seq])}.` });
     }
   }

@@ -45,9 +45,23 @@ export function TalkButton() {
   }, [away, stop]);
 
   useEffect(() => {
-    const typing = (e: KeyboardEvent) => { const t = e.target as HTMLElement; return t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable || t.tagName === 'BUTTON'; };
-    const down = (e: KeyboardEvent) => { if (e.code === 'Space' && !e.repeat && !typing(e)) { e.preventDefault(); void start(); } };
-    const up = (e: KeyboardEvent) => { if (e.code === 'Space' && holding.current) { e.preventDefault(); void stop(); } };
+    const typing = (e: KeyboardEvent) => { const t = e.target as HTMLElement; return t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable; };
+    // Hold Space anywhere to talk. If a button has focus, a quick tap (< 250 ms) still presses that button.
+    let downAt = 0; let downOn: HTMLElement | null = null;
+    const down = (e: KeyboardEvent) => {
+      if (e.code !== 'Space' || typing(e)) return;
+      e.preventDefault();
+      if (e.repeat) return;
+      downAt = Date.now(); downOn = (e.target as HTMLElement).tagName === 'BUTTON' ? e.target as HTMLElement : null;
+      void start();
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.code !== 'Space' || typing(e)) return;
+      e.preventDefault();
+      if (holding.current) void stop();
+      if (downOn && Date.now() - downAt < 250) downOn.click();
+      downOn = null;
+    };
     window.addEventListener('keydown', down); window.addEventListener('keyup', up);
     return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
   }, [start, stop]);

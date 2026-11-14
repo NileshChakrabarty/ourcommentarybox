@@ -44,7 +44,9 @@ function CallRow() {
   const calls = useRoom((s) => s.calls);
   const members = useRoom((s) => s.members);
   const result = useRoom((s) => s.callResult);
+  const playhead = useRoom((s) => s.playhead);
   if (!offer) return null;
+  const locked = playhead >= offer.beforeSeq;
   const mine = calls.find((c) => c.memberId === SELF && c.innings === offer.innings && c.over === offer.over);
   const fresh = result && Date.now() - result.at < 15_000 ? result : undefined;
   return (
@@ -56,10 +58,11 @@ function CallRow() {
       {fresh ? <p className={`call-result${fresh.won ? ' won' : ''}`} role="status">{fresh.text}</p> : (
         <div className="call-btns" role="group" aria-label="Your call for this over">
           {(['wicket', 'six'] as CallType[]).map((t) => (
-            <button key={t} className={`btn btn-sm${mine?.type === t ? ' btn-primary' : ''}`} disabled={!!mine} aria-pressed={mine?.type === t} onClick={() => engine?.placeCall(t)}>{CALL_LABEL[t]}</button>
+            <button key={t} className={`btn btn-sm${mine?.type === t ? ' btn-primary' : ''}`} disabled={!!mine || locked} aria-pressed={mine?.type === t} onClick={() => engine?.placeCall(t)}>{CALL_LABEL[t]}</button>
           ))}
         </div>
       )}
+      {locked && !mine && !fresh && <p className="muted small">Calls are locked once the over starts.</p>}
       <p className="call-gang">
         {offer.friendCalls.map((c) => { const m = members.find((x) => x.id === c.memberId)!; return <span key={c.memberId} style={{ color: m.colour }}>{m.name}: {c.type}</span>; })}
       </p>

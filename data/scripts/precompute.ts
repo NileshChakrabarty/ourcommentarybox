@@ -5,7 +5,7 @@
 //      npm run precompute -- --fresh (regenerates everything)
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { buildPlan } from '../../src/core/plan';
-import { cardKind } from '../../src/core/moments/rules';
+import { cardKind, cardTargetFor } from '../../src/core/moments/rules';
 import { FRIENDS, SELF_ID, DEFAULT_SELF_LOYALTY } from '../../src/content/gang';
 import type { ChapterFile, Match, Member, Moment } from '../../src/core/types';
 import { stateLine, type Beat } from '../../src/core/friends/director';
@@ -24,11 +24,8 @@ const P = new Map(match.players.map((p) => [p.id, p]));
 const byId = new Map(members.map((m) => [m.id, m]));
 const snapText = (seq: number) => stateLine(match, plan.snaps[Math.max(0, seq)]);
 const person = (id?: string) => { if (!id) return undefined; const m = byId.get(id)!; return { name: m.isSelf ? 'you' : m.name, team: m.loyalty.teamId, hero: P.get(m.loyalty.heroId ?? '')?.name, isUser: m.isSelf || undefined }; };
-const cardTarget = (m: Moment, kind: string) => {
-  if (kind === 'tease') return m.victimId;
-  const t = plan.beats.find((b) => b.seq === m.ballSeq && b.targetId === SELF_ID)?.friendId;
-  return t ?? FRIENDS.find((f) => f.loyalty.teamId !== me.loyalty.teamId)?.id;
-};
+const cardTarget = (m: Moment, kind: ReturnType<typeof cardKind>) =>
+  cardTargetFor(m, kind, SELF_ID, plan.beats.filter((b) => b.seq === m.ballSeq), plan.moments, FRIENDS[0].id);
 const beatFact = (b: Beat) => b.fact;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

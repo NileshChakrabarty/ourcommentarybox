@@ -13,6 +13,7 @@ class AudioEngine {
   ctx?: AudioContext;
   private match?: GainNode;     // everything "broadcast" goes through here → ducked
   private crowd?: GainNode;
+  private crowdSrc?: AudioBufferSourceNode;
   private crowdBase = 0.05;
   private muted = false;
   private queue: QueuedClip[] = [];
@@ -54,6 +55,7 @@ class AudioEngine {
       this.crowd = ctx.createGain(); this.crowd.gain.value = this.crowdBase;
       src.connect(bp).connect(lp).connect(this.crowd).connect(this.match);
       src.start();
+      this.crowdSrc = src;
     } catch { /* no Web Audio: run silent */ }
   }
   setCrowdVolume(v: number) {
@@ -61,7 +63,11 @@ class AudioEngine {
     if (!ctx || !g) return;
     g.cancelScheduledValues(ctx.currentTime); g.setValueAtTime(Math.max(0, Math.min(1, v / 100)), ctx.currentTime);
   }
-  stopCrowd() { if (this.match) { this.match.disconnect(); this.match = undefined; this.crowd = undefined; } }
+  stopCrowd() {
+    try { this.crowdSrc?.stop(); } catch { /* already stopped */ }
+    this.crowdSrc?.disconnect(); this.crowdSrc = undefined;
+    if (this.match) { this.match.disconnect(); this.match = undefined; this.crowd = undefined; }
+  }
 
   /** Crowd reaction for a ball result: 0 = calm, 1 = boundary, 2 = six / wicket. */
   swell(level: 0 | 1 | 2) {

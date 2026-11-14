@@ -43,6 +43,11 @@ describe('plan (v1.2)', () => {
     expect(cb.friendId).toBe('dev'); // Kohli (Dev's hero) is at the crease
     expect(cb.fact).not.toMatch(/out|caught|wicket/i); // never spoils the next ball
   });
+  it('the call-back ball still has a line for anyone who never stepped away (no silence before Kohli’s wicket)', () => {
+    const at = plan.beats.filter((b) => b.seq === seqOf(2, '11.1'));
+    expect(at.some((b) => b.intent === 'callback')).toBe(true);
+    expect(at.some((b) => b.intent === 'chatter' && b.friendId !== 'dev')).toBe(true);
+  });
   it('a Gang Call is offered when a chapter opens on a new over', () => {
     expect(plan.callOffers.map((o) => `${o.innings}-${o.over}`)).toEqual(['2-2', '2-10']);
   });

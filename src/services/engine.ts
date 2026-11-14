@@ -5,7 +5,7 @@ import { buildPlan, type RoomPlan } from '../core/plan';
 import { Timeline } from '../core/timeline';
 import { BallTracker, type TrackEvent } from '../core/tracker';
 import { DeliveryQueue, anchorFor } from '../core/sync/delivery';
-import { cardKind } from '../core/moments/rules';
+import { cardKind, cardTargetFor } from '../core/moments/rules';
 import { stateLine, type Beat, type Intent } from '../core/friends/director';
 import { callStatusAt, friendCall, CALL_LABEL } from '../core/calls';
 import { computeStats, awayEvents, fallbackCatchup, ensureWickets } from '../core/wrapStats/stats';
@@ -47,6 +47,8 @@ export const CHAPTER_LEAD_S = 12;
 const CALLBACK_LEAD_S = 6;
 /** After a chapter's last ball, give the gang this long to react before offering the next chapter. */
 const UP_NEXT_AFTER_MS = 20_000;
+/** …longer when the gang has just suggested stepping away, so the reviewer can take that path first. */
+const UP_NEXT_AFTER_NUDGE_MS = 40_000;
 /** A line card that nobody used disappears after this long, even if the next ball is far away (DRS, drinks). */
 const CARD_TTL_MS = 30_000;
 
@@ -71,6 +73,8 @@ export class RoomEngine {
   private cardsBySeq = new Map<number, Moment>();
   private ducker = new Ducker(() => this.source);
   private ended = false;
+  /** friend lines still being resolved (the room must not end before they are in the feed) */
+  private inflight = new Set<Promise<void>>();
   private lastPrefetchAt = 0;
   private lastPersistAt = 0;
   private lastTimePatch = -1;
@@ -156,11 +160,12 @@ export class RoomEngine {
     const i = this.chapters.findIndex((c) => c.endBallSeq === seq);
     const next = i >= 0 ? this.chapters[i + 1] : undefined;
     if (!next || this.mode !== 'live') return;
+    const wait = this.chapters[i].nudgeSeq !== undefined ? UP_NEXT_AFTER_NUDGE_MS : UP_NEXT_AFTER_MS;
     setTimeout(() => {
       const st = room();
       if (this.ended || st.status !== 'live' || st.away?.active || st.playhead >= next.startBallSeq) return;
       patch({ upNext: { chapterId: next.id, at: Date.now() } });
-    }, UP_NEXT_AFTER_MS);
+    }, wait);
   }
   dismissUpNext() { patch({ upNext: undefined }); }
 
@@ -235,11 +240,7 @@ export class RoomEngine {
     this.cardReq.set(m.id, p);
   }
   private cardTarget(m: Moment, kind: CardState['kind']): ID | undefined {
-    if (kind === 'tease') return m.victimId;
-    const teaser = (this.beatsBySeq.get(m.ballSeq) ?? []).find((b) => b.targetId === SELF_ID)?.friendId;
-    if (kind === 'comeback') return teaser ?? FRIENDS[0].id;
-    const r1 = this.plan.moments.find((x) => x.ballSeq === m.ballSeq && x.ruleId === 'R1' && x.victimId !== SELF_ID)?.victimId;
-    return r1 ?? teaser ?? FRIENDS[0].id;
+    return cardTargetFor(m, kind, SELF_ID, this.beatsBySeq.get(m.ballSeq) ?? [], this.plan.moments, FRIENDS[0].id);
   }
 
   // ───────────────────────── ball events
@@ -266,10 +267,16 @@ export class RoomEngine {
     if (offer && !away) this.offerCall(offer);
     this.updateCalls(seq);
 
-    if (this.plan.nudges.some((n) => n.seq === seq) && !away) patch({ nudge: true });
+    if (this.plan.nudges.some((n) => n.seq === seq) && !away) {
+      patch({ nudge: true });
+      setTimeout(() => { if (room().nudge && !room().away?.active) patch({ nudge: false }); }, 45_000);
+    }
     this.maybeOfferNext(seq);
 
-    for (const [i, b] of (this.beatsBySeq.get(seq) ?? []).entries()) void this.playBeat(b, seq, i);
+    for (const [i, b] of (this.beatsBySeq.get(seq) ?? []).entries()) {
+      const p = this.playBeat(b, seq, i).finally(() => this.inflight.delete(p));
+      this.inflight.add(p);
+    }
 
     // stepped away with no scripted call-back ahead: call them back on the next wicket
     if (away && this.awaitCallback && ball.wicket && !room().away?.calledBack) {
@@ -299,6 +306,7 @@ export class RoomEngine {
   private raiseCallback(friendId: ID, text: string, seq: number) {
     const a = room().away; if (!a?.active) return;
     patch({ away: { ...a, skipping: false, calledBack: { friendId, text } } });
+    this.source?.pause(); // hold the moment you were called back for until you're back
     this.catchupReq = { from: a.startSeq, to: seq, p: this.requestCatchup(a.startSeq, seq, 10_000) };
     if (typeof Notification !== 'undefined' && document.hidden && Notification.permission === 'granted') {
       try { new Notification(`${this.member(friendId).name} is calling you back`, { body: text }); } catch { /* optional */ }
@@ -307,6 +315,12 @@ export class RoomEngine {
 
   /** Seek forward past several balls: nothing bursts out. Skipped gang lines land as "while you were away" items. */
   private onSkip(from: number, to: number) {
+    if (this.mode === 'rewatch') {
+      const saved = this.delivery.release(to - 1).filter((it) => !room().feed.some((f) => f.id === it.id));
+      patch({ feed: [...room().feed, ...saved], playhead: Math.max(room().playhead, to - 1) });
+      this.onRevealed(to);
+      return;
+    }
     const away = !!room().away?.active;
     const skipped: FeedItem[] = [];
     for (let s = from + 1; s < to; s++) {
@@ -391,7 +405,10 @@ export class RoomEngine {
     const card = room().card;
     const item: FeedItem = { id: uid(), memberId: SELF_ID, kind: 'text', anchorSeq: this.anchorNow(), sentAt: Date.now(), text: t, source: 'user', targetId: card?.targetId, momentId: opts.fromLine !== undefined ? card?.moment.id : undefined };
     this.push(item);
-    if (card && opts.fromLine !== undefined) patch({ card: { ...card, usedIdx: opts.fromLine } });
+    if (card && opts.fromLine !== undefined) {
+      patch({ card: { ...card, usedIdx: opts.fromLine } });
+      setTimeout(() => { if (room().card?.moment.id === card.moment.id) patch({ card: undefined }); }, 6_000); // free the dock
+    }
     void this.replyTo(t);
   }
   sendCardLine() { const c = room().card; if (c && c.usedIdx === undefined) this.sendText(c.lines[c.idx], { fromLine: c.idx }); }
@@ -441,6 +458,7 @@ export class RoomEngine {
   }
   placeCall(type: CallType) {
     const o = room().callOffer; if (!o) return;
+    if (room().playhead >= o.beforeSeq) return; // calls lock when the over's first ball is bowled
     if (room().calls.some((c) => c.memberId === SELF_ID && c.innings === o.innings && c.over === o.over)) return;
     patch({ calls: [...room().calls, { id: uid(), memberId: SELF_ID, type, innings: o.innings, over: o.over, status: 'open' }] });
   }
@@ -518,6 +536,7 @@ export class RoomEngine {
     const from = a.startSeq, to = room().playhead;
     this.awaitCallback = false;
     const missed = room().feed.filter((f) => f.unheard).map((f) => f.id);
+    if (a.calledBack || this.source?.getState() === 'paused') this.source?.play();
     patch({ away: undefined, catchup: { text: '', source: 'loading', fromSeq: from, toSeq: to, missed } });
     const pre = this.catchupReq && this.catchupReq.from === from && this.catchupReq.to === to ? this.catchupReq.p : undefined;
     this.catchupReq = undefined;
@@ -539,9 +558,12 @@ export class RoomEngine {
     if (this.ended) return;
     this.ended = true;
     clearInterval(this.loop);
-    if (this.mode === 'rewatch') { this.source?.pause(); patch({ status: 'ended', screen: 'shelf', mode: 'live' }); return; }
+    // let the last ball's lines land and play before the wrap (the final reactions belong in the memory)
+    await withTimeout(Promise.allSettled([...this.inflight]), 6_000);
+    await new Promise((r) => setTimeout(r, 300));
     const t0 = Date.now();
-    while (audio.busy && Date.now() - t0 < 8_000) await new Promise((r) => setTimeout(r, 200));
+    while (audio.busy && Date.now() - t0 < 12_000) await new Promise((r) => setTimeout(r, 200));
+    if (this.mode === 'rewatch') { this.source?.pause(); patch({ status: 'ended', screen: 'shelf', mode: 'live' }); return; }
     this.source?.pause();
     patch({ status: 'ended', card: undefined, callOffer: undefined, catchup: undefined, away: undefined });
     const st = room();
