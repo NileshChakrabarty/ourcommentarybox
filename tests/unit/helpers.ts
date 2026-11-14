@@ -1,0 +1,8 @@
+import { readFileSync } from 'node:fs';
+import type { Match, Member, Loyalty } from '../../src/core/types';
+import { parseMatch } from '../../src/core/schema';
+import { FRIENDS, SELF_ID, DEFAULT_SELF_LOYALTY } from '../../src/content/gang';
+export const match: Match = parseMatch(JSON.parse(readFileSync('public/data/match.json', 'utf8')));
+export const me = (l: Loyalty = DEFAULT_SELF_LOYALTY): Member => ({ id: SELF_ID, name: 'You', isSelf: true, isSimulated: false, colour: '', persona: '', style: '', loyalty: l });
+export const gang = (l?: Loyalty) => [me(l), ...FRIENDS];
+export const seqOf = (innings: 1 | 2, label: string) => match.balls.filter((b) => b.innings === innings && b.label === label).at(-1)!.seq;

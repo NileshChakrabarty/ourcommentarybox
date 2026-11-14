@@ -1,0 +1,6 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "functions": { "api/*.ts": { "maxDuration": 15 } },
+  "rewrites": [{ "source": "/((?!api/|data/|audio/|assets/).*)", "destination": "/index.html" }]
+}

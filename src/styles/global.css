@@ -1,0 +1,71 @@
+/* Fun-Banter — floodlit night match. Tokens first; dark is the default (people watch at night). */
+:root {
+  --night: #0d1b2e;
+  --night-2: #12243b;
+  --surface: #172c47;
+  --surface-2: #1e3756;
+  --line: #2a4466;
+  --outfield: #163d2c;
+  --outfield-2: #1d5139;
+  --pitch: #c9b48a;
+  --marigold: #ffc233;
+  --marigold-ink: #2a1d00;
+  --ball: #f4f1e8;
+  --text: #f4f1e8;
+  --muted: #9fb2c8;
+  --live: #ff4d4d;
+  --good: #4ade80;
+  --bad: #ff6b6b;
+  --dev: #ff8a3d;
+  --ritu: #f06bb5;
+  --sunny: #5cc8ff;
+  --me: #ffc233;
+  --ind: #4f8cff;
+  --nz: #e9eef5;
+  --font-display: 'Big Shoulders Display', 'Arial Narrow', sans-serif;
+  --font-ui: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --r-sm: 6px; --r-md: 10px; --r-lg: 18px;
+  color-scheme: dark;
+}
+/* Dark is the default (spec §13.5); a light theme is available via data-theme="light". */
+:root[data-theme="light"] {
+  --night: #e9edf3; --night-2: #f6f8fb; --surface: #ffffff; --surface-2: #eef2f7; --line: #d3dce7;
+  --text: #0d1b2e; --muted: #4a5d74; color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  margin: 0; background: var(--night); color: var(--text);
+  font: 400 15px/1.45 var(--font-ui); -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--marigold); outline-offset: 2px; border-radius: 4px; }
+.num { font-variant-numeric: tabular-nums; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: 1px solid var(--line); background: var(--surface-2); color: var(--text);
+  border-radius: 999px; padding: 9px 16px; font-weight: 600; font-size: 14px;
+  transition: background .15s, border-color .15s, transform .1s;
+}
+.btn:hover { border-color: var(--muted); }
+.btn:active { transform: translateY(1px); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary { background: var(--marigold); color: var(--marigold-ink); border-color: var(--marigold); }
+.btn-primary:hover { background: #ffd162; border-color: #ffd162; }
+.btn-ghost { background: transparent; }
+.btn-sm { padding: 5px 11px; font-size: 13px; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50;
+  background: var(--surface); border: 1px solid var(--line); padding: 10px 16px; border-radius: 999px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, .35); font-weight: 500; animation: toast-in .2s ease-out;
+}
+@keyframes toast-in { from { opacity: 0; transform: translate(-50%, 8px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
