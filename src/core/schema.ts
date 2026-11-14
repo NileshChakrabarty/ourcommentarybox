@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { Match } from './types';
 
 const Ball = z.object({
-  seq: z.number().int().nonnegative(), innings: z.union([z.literal(1), z.literal(2)]), over: z.number().int().min(0).max(19),
+  seq: z.number().int().nonnegative(), innings: z.union([z.literal(1), z.literal(2)]), over: z.number().int().min(0).max(49),
   legalInOver: z.number().int().min(0).max(6), label: z.string(),
   batterId: z.string(), nonStrikerId: z.string(), bowlerId: z.string(),
   runsBat: z.number().int().min(0).max(7), extras: z.number().int().min(0), extraType: z.enum(['wd', 'nb', 'b', 'lb']).optional(),
@@ -12,7 +12,8 @@ const Ball = z.object({
   legalBallsAfter: z.number().int(), text: z.string().max(120),
 });
 export const MatchSchema = z.object({
-  id: z.string(), title: z.string(), shortTitle: z.string(), date: z.string(), venue: z.string(), result: z.string(),
+  id: z.string(), title: z.string(), shortTitle: z.string(), overs: z.number().int().positive(),
+  video: z.object({ provider: z.literal('youtube'), id: z.string(), title: z.string(), owner: z.string(), url: z.string() }).optional(), date: z.string(), venue: z.string(), result: z.string(),
   battingFirst: z.string(), chasing: z.string(), target: z.number().int(),
   source: z.object({ name: z.string(), licence: z.string(), url: z.string(), note: z.string() }),
   teams: z.array(z.object({ id: z.string(), name: z.string(), short: z.string(), colour: z.string() })).length(2),

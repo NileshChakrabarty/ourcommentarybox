@@ -65,7 +65,7 @@ export function buildSnapshots(match: Match): Snapshot[] {
     };
     if (b.innings === 2) {
       snap.need = Math.max(0, match.target - runs);
-      snap.ballsLeft = 120 - legal;
+      snap.ballsLeft = match.overs * 6 - legal;
       snap.rrr = snap.ballsLeft > 0 ? (snap.need * 6) / snap.ballsLeft : 0;
     }
     out.push(snap);

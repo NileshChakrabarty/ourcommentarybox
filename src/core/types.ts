@@ -21,8 +21,11 @@ export interface Ball {
   legalBallsAfter: number; // legal balls in this innings after this delivery
   text: string;            // original short ball text (facts only)
 }
+export interface MatchVideo { provider: 'youtube'; id: string; title: string; owner: string; url: string }
 export interface Match {
   id: ID; title: string; shortTitle: string; date: string; venue: string; result: string;
+  overs: number;          // scheduled overs per innings (50 for an ODI)
+  video?: MatchVideo;
   battingFirst: ID; chasing: ID; target: number;
   source: { name: string; licence: string; url: string; note: string };
   teams: Team[]; players: Player[]; balls: Ball[];

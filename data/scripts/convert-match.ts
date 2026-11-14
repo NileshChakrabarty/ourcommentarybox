@@ -1,18 +1,14 @@
-// Cricsheet JSON (data/raw/1539436.json) → public/data/match.json
+// Cricsheet JSON (data/matches/<id>/cricsheet-*.json) → public/data/match.json
 // Facts only (runs, extras, wickets, batter, bowler). Ball text is original, generated from templates.
 import { readFileSync, writeFileSync } from 'node:fs';
-import { PLAYER_META } from './players';
+import { PLAYER_META, MATCH_META } from '../matches/eng-ind-2022-odi2/meta';
 import type { Ball, Match, Player, ExtraType } from '../../src/core/types';
 
-const RAW = 'data/raw/1539436.json';
-const raw = JSON.parse(readFileSync(RAW, 'utf8'));
+const raw = JSON.parse(readFileSync(MATCH_META.cricsheet, 'utf8'));
 const info = raw.info;
 
-const TEAM = {
-  India: { id: 'IND', name: 'India', short: 'IND', colour: '#3b82f6' },
-  'New Zealand': { id: 'NZ', name: 'New Zealand', short: 'NZ', colour: '#e5e7eb' },
-} as const;
-type TeamName = keyof typeof TEAM;
+const TEAM = MATCH_META.teams;
+type TeamName = string;
 
 const pid = (n: string) => n.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '');
 const players: Player[] = [];
@@ -88,19 +84,22 @@ raw.innings.forEach((inn: any, ii: number) => {
 const first = TEAM[raw.innings[0].team as TeamName];
 const second = TEAM[raw.innings[1].team as TeamName];
 const firstTotal = balls.filter((b) => b.innings === 1).at(-1)!.scoreAfter.runs;
+const by = info.outcome.by as { runs?: number; wickets?: number };
 const match: Match = {
-  id: 'nz-ind-5th-t20i-2026',
-  title: 'New Zealand v India · 5th T20I',
-  shortTitle: 'NZ v IND · 5th T20I',
+  id: MATCH_META.id,
+  title: MATCH_META.title,
+  shortTitle: MATCH_META.shortTitle,
+  overs: MATCH_META.overs,
   date: info.dates[0],
   venue: info.venue,
-  result: `${TEAM[info.outcome.winner as TeamName].name} won by ${info.outcome.by.wickets} wickets`,
+  result: `${TEAM[info.outcome.winner as TeamName].name} won by ${by.runs ? `${by.runs} runs` : `${by.wickets} wickets`}`,
   battingFirst: first.id, chasing: second.id, target: firstTotal + 1,
   source: {
     name: 'Cricsheet', licence: 'Open Data Commons Attribution License (ODC-By)', url: 'https://cricsheet.org/',
     note: 'Ball-by-ball facts from Cricsheet. Ball descriptions are original text, not broadcast commentary.',
   },
-  teams: [TEAM.India, TEAM['New Zealand']].map((t) => ({ ...t })),
+  teams: [first, second].map((t) => ({ ...t })),
+  video: MATCH_META.video,
   players, balls,
 };
 writeFileSync('public/data/match.json', JSON.stringify(match));
