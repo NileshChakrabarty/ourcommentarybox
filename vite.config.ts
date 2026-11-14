@@ -43,12 +43,26 @@ function devApi(): Plugin {
   };
 }
 
+/** Dev-only: /dev/tag → the tagging tool (dev/tag/index.html). Not a build input, so it never ships. */
+function devTag(): Plugin {
+  return {
+    name: 'fun-banter-dev-tag',
+    apply: 'serve',
+    configureServer(server: ViteDevServer) {
+      server.middlewares.use((req: IncomingMessage, _res: ServerResponse, next) => {
+        if (req.url === '/dev/tag' || req.url?.startsWith('/dev/tag?')) req.url = req.url.replace('/dev/tag', '/dev/tag/');
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   // Load ALL env vars into the dev server process only (never exposed to client: no VITE_ prefix used).
   const env = loadEnv(mode, process.cwd(), '');
   for (const [k, v] of Object.entries(env)) if (!(k in process.env)) process.env[k] = v;
   return {
-    plugins: [react(), devApi()],
+    plugins: [react(), devApi(), devTag()],
     server: { port: 5173 },
     test: {
       environment: 'jsdom',

@@ -49,9 +49,11 @@ describe('plan (v1.2)', () => {
   it('beats never use facts from later balls (spoiler rule): chatter fact is that ball’s own text', () => {
     for (const b of plan.beats.filter((x) => x.intent === 'chatter')) expect(b.fact.startsWith(match.balls[b.seq].text)).toBe(true);
   });
-  it('at most 2 friend beats per ball', () => {
-    const c = new Map<number, number>(); plan.beats.forEach((b) => c.set(b.seq, (c.get(b.seq) ?? 0) + 1));
+  it('at most 2 reaction beats per ball, plus the scripted nudge/call-back; one line per friend per ball', () => {
+    const c = new Map<number, number>(); plan.beats.filter((b) => b.intent !== 'nudge_away' && b.intent !== 'callback').forEach((b) => c.set(b.seq, (c.get(b.seq) ?? 0) + 1));
     expect(Math.max(...c.values())).toBeLessThanOrEqual(2);
+    const k = plan.beats.map((b) => `${b.seq}-${b.friendId}`); expect(new Set(k).size).toBe(k.length);
+    expect(plan.beats.some((b) => b.intent === 'nudge_away' && b.seq === seqOf(2, '2.4'))).toBe(true);
   });
 });
 

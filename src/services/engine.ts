@@ -339,7 +339,8 @@ export class RoomEngine {
   }
   private async resolveBeat(b: Beat): Promise<{ text: string; audio?: Blob | string; source: FeedItem['source'] }> {
     if (!this.beatReq.has(b.id) && this.mode === 'live') this.requestWindow([b], []);
-    if (!this.beatDone.has(b.id)) await withTimeout(this.beatReq.get(b.id), LATE_LINE_MS);
+    // the chapter-opening line has nothing else to wait for, so it can wait a little longer for live AI
+    if (!this.beatDone.has(b.id)) await withTimeout(this.beatReq.get(b.id), b.intent === 'setup' ? 5_000 : LATE_LINE_MS);
     return this.quickLine(b);
   }
 

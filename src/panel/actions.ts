@@ -35,9 +35,10 @@ export function startRoom(l: Loyalty) {
   const members = [selfMember(l), ...FRIENDS];
   reset();
   audio.unlock(); // inside the click → unlocks autoplay
-  newEngine(members, 'live');
+  const e = newEngine(members, 'live');
   const { t, chapterId } = chapterStart();
   pending = { t };
+  e.prefetch(t, true); // start writing the first lines while the player loads
   patch({ selfLoyalty: l, members, screen: 'live', mode: 'live', resumable: undefined, chapterId });
   void storage.clearLive();
 }

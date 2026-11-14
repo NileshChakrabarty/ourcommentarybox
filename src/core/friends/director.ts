@@ -142,8 +142,11 @@ export function planBeats(match: Match, members: Member[], moments: Moment[], se
   for (const b of beats) bySeq.set(b.seq, [...(bySeq.get(b.seq) ?? []), b]);
   const res: Beat[] = [];
   for (const [, list] of [...bySeq.entries()].sort((a, b) => a[0] - b[0])) {
-    const uniq = list.filter((b, i) => list.findIndex((x) => x.friendId === b.friendId) === i);
-    res.push(...uniq.sort((a, b) => order.indexOf(a.intent) - order.indexOf(b.intent)).slice(0, 2));
+    // scripted product beats (nudge, call-back) always survive; up to 2 reaction beats per ball besides them
+    const scripted = list.filter((b) => b.intent === 'nudge_away' || b.intent === 'callback');
+    const rest = list.filter((b) => !scripted.includes(b) && !scripted.some((x) => x.friendId === b.friendId));
+    const uniq = rest.filter((b, i) => rest.findIndex((x) => x.friendId === b.friendId) === i);
+    res.push(...uniq.sort((a, b) => order.indexOf(a.intent) - order.indexOf(b.intent)).slice(0, 2), ...scripted);
   }
   return res;
 }
