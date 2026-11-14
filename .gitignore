@@ -17,3 +17,6 @@ test-results/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# local probes (never shipped)
+public/dev-probe/
