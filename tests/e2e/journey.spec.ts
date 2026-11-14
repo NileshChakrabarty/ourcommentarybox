@@ -116,7 +116,7 @@ test('embed error → automatic scoreboard fallback at the same ball, nothing re
   const ball = await page.locator('.nb-label b').textContent();
   await page.evaluate(() => (window as unknown as { __ytFake: { error: (c: number) => void } }).__ytFake.error(150));
   await expect(page.locator('.board')).toBeVisible();
-  await expect(page.getByText("couldn't play here")).toBeVisible();
+  await expect(page.getByText("won't play here")).toBeVisible();
   await expect(page.locator('.nb-label b')).toHaveText(ball!);
   expect(await page.locator('.v').count()).toBeGreaterThanOrEqual(before);
   // and the match carries on in the fallback: Rohit's wicket still lands

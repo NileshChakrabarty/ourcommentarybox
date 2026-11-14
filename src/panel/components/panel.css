@@ -74,7 +74,7 @@
 .skip-line { display: block; font-size: var(--fs-1); color: var(--chalk-2); border: 1px dashed var(--rule-strong); border-radius: var(--r-1); padding: var(--s-1) var(--s-2); }
 
 /* Dock */
-.dock { border-top: 1px solid var(--rule); padding: var(--s-3); display: grid; gap: var(--s-2); background: var(--ink-1); }
+.dock { position: relative; z-index: 2; border-top: 1px solid var(--rule); padding: var(--s-3); display: grid; gap: var(--s-2); background: var(--ink-1); }
 .prompt {
   --c: var(--marigold);
   border-radius: var(--r-2); padding: var(--s-3); display: grid; gap: var(--s-2);
@@ -83,7 +83,7 @@
 }
 @keyframes prompt-in { from { opacity: 0; transform: translateY(8px); } }
 .prompt-head { display: flex; align-items: center; justify-content: space-between; gap: var(--s-2); }
-.prompt-label { font: 800 var(--fs-3)/1.1 var(--font-display); color: var(--c); }
+.prompt-label { font: 800 var(--fs-3)/1.1 var(--font-display); color: color-mix(in srgb, var(--c) 72%, var(--chalk)); }
 .line-text { margin: 0; font-size: var(--fs-4); line-height: 1.25; font-weight: 600; }
 .prompt-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2); }
 .prompt-hint { font-size: var(--fs-1); }

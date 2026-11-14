@@ -39,6 +39,7 @@ export function Feed() {
   const plan = useRoom((s) => s.plan);
   const position = useRoom((s) => s.position);
   const speakingId = useRoom((s) => s.speakingId);
+  const state = useRoom((s) => s.sourceState);
   const ref = useRef<HTMLDivElement>(null);
   const byId = new Map(members.map((m) => [m.id, m]));
   const P = new Map(match.players.map((p) => [p.id, p.short]));
@@ -54,7 +55,7 @@ export function Feed() {
 
   return (
     <div className="feed" ref={ref} aria-live="polite" aria-label="Gang commentary, newest at the bottom">
-      {feed.length === 0 && <p className="feed-empty">{position < 0 ? 'The gang is settling in. First ball any second.' : 'Quiet so far. Hold Space and say something.'}</p>}
+      {feed.length === 0 && <p className="feed-empty">{position < 0 || state !== 'playing' ? 'The gang is settling in. First ball any second.' : 'Quiet so far. Hold Space and say something.'}</p>}
       <ol className="rail">
         {groups.map((g) => {
           const b = match.balls[g.seq];

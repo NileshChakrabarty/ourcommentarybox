@@ -87,6 +87,6 @@ export async function bootSource(mount: HTMLElement | null) {
   e.attach(source, source.kind === 'scoreboard' && reason !== 'forced' ? fallbackNote(reason) : undefined);
   e.start(start.t, { silentUpTo: start.silentUpTo });
 }
-const fallbackNote = (why?: string) => `The match video couldn't play here${why ? ` (${why})` : ''}, so you're watching the scoreboard replay. Same balls, same gang.`;
+const fallbackNote = (why?: string) => { if (why) console.info('[fun-banter] video fallback:', why); return "The match video won't play here, so you're on the scoreboard replay. Same balls, same gang."; };
 
 export function leaveToShelf() { setEngine(undefined); patch({ screen: 'shelf', mode: 'live' }); }

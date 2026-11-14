@@ -21,7 +21,7 @@ export function AwayView() {
     <section className="away" aria-label="You stepped away">
       <p className="away-big">You stepped away</p>
       <p className="muted">The gang keeps watching. They'll call you back when something big happens.</p>
-      {away.skipping && <p className="away-skip">Demo time-skip: jumping the video ahead to the next big moment, so you don't have to wait.</p>}
+      {away.skipping && <p className="away-skip">Demo shortcut: we're skipping the video ahead to the next big moment so you don't have to wait.</p>}
       <button className="btn" onClick={() => void engine?.comeBack()}>I'm back</button>
     </section>
   );

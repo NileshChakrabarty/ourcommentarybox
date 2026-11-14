@@ -53,7 +53,7 @@ function CallRow() {
     <section className="prompt call-row" aria-label="Gang Call">
       <header className="prompt-head">
         <span className="prompt-label">Gang Call: over {offer.over + 1}, {offer.bowler} bowling</span>
-        <span className="chip" title="Bragging rights only. No points, no money.">For fun</span>
+        <span className="chip" title="No points, no money. Just who called it.">Bragging rights only</span>
       </header>
       {fresh ? <p className={`call-result${fresh.won ? ' won' : ''}`} role="status">{fresh.text}</p> : (
         <div className="call-btns" role="group" aria-label="Your call for this over">
@@ -62,7 +62,7 @@ function CallRow() {
           ))}
         </div>
       )}
-      {locked && !mine && !fresh && <p className="muted small">Calls are locked once the over starts.</p>}
+      {locked && !mine && !fresh && <p className="muted small">Calls closed. The over has started.</p>}
       <p className="call-gang">
         {offer.friendCalls.map((c) => { const m = members.find((x) => x.id === c.memberId)!; return <span key={c.memberId} style={{ color: m.colour }}>{m.name}: {c.type}</span>; })}
       </p>
