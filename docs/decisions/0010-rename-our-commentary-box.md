@@ -1,6 +1,6 @@
 # ADR-0010: Rename to Our Commentary Box
 
-**Date:** 2026-11-15 · **Status:** Accepted (owner instruction)
+**Date:** 2026-11-15 · **Status:** Accepted (owner instruction) · Start-screen layout notes superseded by ADR-0011
 
 The product is renamed from Fun-Banter to **Our Commentary Box**. The short form in the UI is **Our Box**, the slug is
 `ourcommentarybox`, and the tagline is *"The best commentary is your friends."* The owner asked for no questions, so these
