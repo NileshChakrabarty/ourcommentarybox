@@ -1,9 +1,9 @@
-// Memory shelf (S-8): one memory per match room.
+// Memory shelf (S-8): one memory per match room. Behind "More" after the wrap (v1.3). No rewatch: the broadcast
+// is live-only, so a memory is the gang's lines and the wrap, not a replay.
 import { useEffect, useState } from 'react';
 import { useRoom, patch } from '../../store/room';
 import { storage } from '../../services/storage/db';
 import { refreshShelf, type SavedRoom } from '../../services/engine';
-import { rewatch } from '../actions';
 import { FRIENDS, SELF_ID } from '../../content/gang';
 import './screens.css';
 
@@ -37,7 +37,6 @@ export function Shelf() {
           <section className="mem-detail" aria-label="Memory">
             <h2>{open.wrap?.title ?? open.result}</h2>
             <div className="mem-actions">
-              <button className="btn btn-primary" onClick={() => void rewatch(open.id)}>Rewatch with the gang</button>
               <button className="btn btn-ghost btn-sm" onClick={() => void storage.deleteRoom(open.id).then(() => { setOpen(null); void refreshShelf(); })}>Delete memory</button>
             </div>
             <ol className="timeline">

@@ -1,4 +1,6 @@
-// The PORTABLE product panel (no imports from src/stage) — the same panel would mount inside a Chrome extension.
+// The PORTABLE gang panel (ADR-0017): host-agnostic. It reads the store and talks to the engine, and the engine only
+// knows the MatchSource interface, so the same panel mounts in the web app (beside our YouTube embed) and in the
+// Chrome extension's side panel (beside the viewer's own YouTube tab). No imports from src/stage.
 // IA (REDESIGN §3): now bar → gang row → ball rail feed → dock (one prompt at a time, reactions, the mic).
 import { useEffect, useState } from 'react';
 import { useRoom } from '../../store/room';
@@ -14,8 +16,9 @@ function NowBar() {
   const plan = useRoom((s) => s.plan);
   const position = useRoom((s) => s.position);
   const state = useRoom((s) => s.sourceState);
-  const mode = useRoom((s) => s.mode);
   const status = useRoom((s) => s.status);
+  const kind = useRoom((s) => s.sourceKind);
+  const stepSec = useRoom((s) => s.live?.stepAwaySec ?? 20);
   const nudge = useRoom((s) => s.nudge);
   const away = useRoom((s) => !!s.away?.active);
   const [stalled, setStalled] = useState(false);
@@ -35,13 +38,13 @@ function NowBar() {
         <span className="nb-label">{ball ? <>Ball <b className="num">{ball.label}</b></> : 'Waiting for the first ball'}</span>
         {snap && <span className="nb-score num">{team} {snap.runs}/{snap.wickets}</span>}
       </div>
-      {mode === 'live' && status === 'live' && (
+      {status === 'live' && (
         <button className={`btn btn-sm step${nudge ? ' nudge' : ''}`} onClick={() => engine?.stepAway()} disabled={away}>Step away</button>
       )}
-      {stalled && status === 'live' && !away && (
-        <p className="nb-hint" role="status">{state === 'paused' ? 'Paused. The gang waits with you.' : state === 'buffering' ? 'The video is buffering…' : 'Press play on the video to start the match.'}</p>
-      )}
-      {nudge && !away && <p className="nb-hint nb-nudge">Go on, step away. The gang will call you back when it matters.</p>}
+      {stalled && status === 'live' && !away && (kind === 'video'
+        ? <p className="nb-hint" role="status">{state === 'ad' ? 'An ad is playing on YouTube. The gang waits.' : 'Play the match in your YouTube tab; the gang follows your video.'}</p>
+        : <p className="nb-hint" role="status">{state === 'buffering' ? 'The broadcast is buffering…' : <>The broadcast hasn't started. <button className="btn btn-sm btn-primary" onClick={() => engine?.source?.play()}>Start the broadcast</button></>}</p>)}
+      {nudge && !away && <p className="nb-hint nb-nudge">Step away for {stepSec} s and come back. The gang will catch you up.</p>}
     </header>
   );
 }
@@ -61,7 +64,7 @@ function GangRow() {
         return (
           <li key={m.id} className={talking ? 'talking' : ''} style={{ '--c': m.colour } as React.CSSProperties}>
             <Avatar m={m} size={36} speaking={talking} />
-            <span className="gr-name">{m.isSelf ? 'You' : m.name}</span>
+            <span className="gr-name">{m.isSelf ? 'You' : m.name}{m.isSimulated && <span className="ai-tag" title={`${m.name} is an AI friend: Gemini writes the lines, Sarvam voices them`}>AI</span>}</span>
             <span className="gr-hero">{P.get(m.loyalty.heroId ?? '') ?? ''}{won ? <span className="gr-won" title={`${won} Gang Call${won > 1 ? 's' : ''} won`}> +{won}</span> : null}</span>
           </li>
         );

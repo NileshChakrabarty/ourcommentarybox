@@ -1,16 +1,16 @@
-// FR-007/008 ball-pinned delivery + the v1.2 plan (chapters, no dead air, call-back, nudge).
+// FR-007/008 ball-pinned delivery + the v1.3 live plan: journey timing beats (first wicket, comeback, nudge),
+// pacing across the whole chase (busy on big moments, quiet on dots), and the spoiler rule.
 import { describe, it, expect } from 'vitest';
-import { readFileSync } from 'node:fs';
-import { match, gang, seqOf } from './helpers';
+import { match, gang, seqOf, live, tl } from './helpers';
 import { buildPlan } from '../../src/core/plan';
+import { joinTime } from '../../src/core/friends/director';
 import { DeliveryQueue, anchorFor } from '../../src/core/sync/delivery';
-import { ChapterFileSchema, TimelineSchema } from '../../src/core/schema';
-import { Timeline } from '../../src/core/timeline';
-import type { ChapterFile } from '../../src/core/types';
 
-const chapters = (ChapterFileSchema.parse(JSON.parse(readFileSync('public/data/chapters.json', 'utf8'))) as ChapterFile).chapters;
-const tl = new Timeline(TimelineSchema.parse(JSON.parse(readFileSync('public/data/timeline.json', 'utf8'))));
-const plan = buildPlan(match, gang(), 'me', chapters);
+const plan = buildPlan(match, gang(), 'me', tl, live);
+const t0 = joinTime(tl, live);
+const when = (b: { seq: number; atTime?: number }) => b.atTime ?? tl.timeOf(b.seq);
+const after = (b: { seq: number; atTime?: number }) => when(b) - t0;
+const rohitOut = seqOf(2, '2.4');
 
 describe('timeline asset', () => {
   it('has one entry per delivery, monotonic, inside the 6:21:28 video', () => {
@@ -18,47 +18,86 @@ describe('timeline asset', () => {
     for (let i = 1; i < tl.length; i++) expect(tl.entries[i].videoTime).toBeGreaterThanOrEqual(tl.entries[i - 1].videoTime);
     expect(tl.timeOf(match.balls.length - 1)).toBeLessThan(22_888);
   });
-  it('every ball inside the demo chapters is anchored (not interpolated)', () => {
-    for (const c of chapters) for (let s = c.startBallSeq; s <= c.endBallSeq; s++) expect(tl.entries[s].tagged).toBe(true);
+  it('the balls of the first-minutes journey are anchored to the video (not interpolated)', () => {
+    for (let s = live.joinBallSeq - 1; s <= rohitOut + 1; s++) expect(tl.entries[s].tagged).toBe(true);
   });
-  it('India’s chase starts after England’s last ball', () => {
-    const firstInn2 = match.balls.find((b) => b.innings === 2)!.seq;
-    expect(tl.timeOf(firstInn2)).toBeGreaterThan(tl.timeOf(firstInn2 - 1));
+  it('the live broadcast ends on the last ball of the match', () => {
+    expect(live.endBallSeq).toBe(match.balls.length - 1);
+    expect(match.balls[live.joinBallSeq].innings).toBe(2);
   });
 });
 
-describe('plan (v1.2)', () => {
-  it('no dead air: every chapter opens with a scene-setting line and most chapter balls have a voice', () => {
-    for (const c of chapters) {
-      expect(plan.beats.some((b) => b.seq === c.startBallSeq - 1)).toBe(true);
-      const balls = c.endBallSeq - c.startBallSeq + 1;
-      const voiced = new Set(plan.beats.filter((b) => b.seq >= c.startBallSeq && b.seq <= c.endBallSeq).map((b) => b.seq)).size;
-      expect(voiced / balls).toBeGreaterThanOrEqual(0.8);
+describe('journey timing (v1.3 §3): the first minutes', () => {
+  it('a scene-setting line lands within 5 s of joining', () => {
+    const setup = plan.beats.find((b) => b.intent === 'setup')!;
+    expect(after(setup)).toBeGreaterThan(0);
+    expect(after(setup)).toBeLessThanOrEqual(5);
+  });
+  it('the first wicket (Rohit lbw b Topley) lands 30–45 s after joining, with friends reacting on that ball', () => {
+    expect(match.balls[rohitOut].wicket?.playerOutId).toBe('rg-sharma');
+    expect(tl.timeOf(rohitOut) - t0).toBeGreaterThanOrEqual(30);
+    expect(tl.timeOf(rohitOut) - t0).toBeLessThanOrEqual(45);
+    const on = plan.beats.filter((b) => b.seq === rohitOut && b.atTime === undefined);
+    expect(on.length).toBe(2);
+    expect(on.every((b) => b.intent === 'tease' && b.targetId === 'me')).toBe(true); // Rohit is your hero
+  });
+  it('your comeback card is planned for that wicket and shows at about a minute', () => {
+    const card = plan.cards.find((c) => c.ballSeq === rohitOut)!;
+    expect(card.ruleId).toBe('R1');
+    const shown = tl.timeOf(rohitOut) - t0 + live.comebackCardDelaySec;
+    expect(shown).toBeGreaterThanOrEqual(45);
+    expect(shown).toBeLessThanOrEqual(75);
+  });
+  it('the step-away nudge fires at about 2 minutes, inside the guarantee window, on video time (not a ball)', () => {
+    const n = plan.beats.find((b) => b.intent === 'nudge_away')!;
+    expect(n.friendId).toBe('sunny');
+    expect(after(n)).toBe(live.nudgeAtSec);
+    expect(after(n)).toBeLessThan(live.guaranteeWindowSec);
+    expect(plan.nudges[0].atTime).toBe(n.atTime);
+  });
+  it('the long break after the wicket is not silent: the gang talks during the replays and as Kohli walks out', () => {
+    const lulls = plan.beats.filter((b) => b.intent === 'lull' && b.seq === rohitOut);
+    expect(lulls).toHaveLength(2);
+    expect(lulls[1].fact).toContain('Kohli is walking out');
+  });
+});
+
+describe('open-ended live match: pacing to the last ball', () => {
+  it('runs past 3 minutes all the way to the final ball', () => {
+    expect(Math.max(...plan.beats.map(after))).toBeGreaterThan(2 * 3600);
+    expect(plan.beats.some((b) => b.intent === 'final' && b.seq === live.endBallSeq)).toBe(true);
+  });
+  it('never more than about 3.5 minutes without a line, and never two lines in the same few seconds unless it is a big ball', () => {
+    const times = plan.beats.map(when).sort((a, b) => a - b);
+    for (let i = 1; i < times.length; i++) expect(times[i] - times[i - 1]).toBeLessThanOrEqual(215);
+  });
+  it('busy on big moments, quiet on dot balls', () => {
+    const balls = match.balls.filter((b) => b.seq > live.joinBallSeq && b.seq <= live.endBallSeq);
+    const voiced = (s: number) => plan.beats.some((b) => b.seq === s && b.atTime === undefined);
+    const big = balls.filter((b) => b.wicket || b.runsBat >= 4);
+    const dots = balls.filter((b) => !b.wicket && b.runsBat === 0 && !b.extras);
+    expect(big.filter((b) => voiced(b.seq)).length / big.length).toBeGreaterThanOrEqual(0.95);
+    expect(dots.filter((b) => voiced(b.seq)).length / dots.length).toBeLessThanOrEqual(0.3);
+    for (const w of balls.filter((b) => b.wicket)) expect(plan.beats.filter((b) => b.seq === w.seq && b.atTime === undefined).length).toBe(2);
+  });
+  it('at most 2 friends per ball and one line per friend per ball; ids are unique', () => {
+    const per = new Map<number, string[]>();
+    for (const b of plan.beats.filter((x) => x.atTime === undefined)) per.set(b.seq, [...(per.get(b.seq) ?? []), b.friendId]);
+    for (const ids of per.values()) { expect(ids.length).toBeLessThanOrEqual(2); expect(new Set(ids).size).toBe(ids.length); }
+    expect(new Set(plan.beats.map((b) => b.id)).size).toBe(plan.beats.length);
+  });
+  it('spoiler rule: chatter uses that ball’s own text, and break lines only facts up to that ball', () => {
+    for (const b of plan.beats.filter((x) => x.intent === 'chatter')) expect(b.fact.startsWith(match.balls[b.seq].text)).toBe(true);
+    for (const b of plan.beats.filter((x) => x.intent === 'lull')) {
+      expect(b.fact).toContain(match.balls[b.seq].text);
+      expect(b.fact).not.toContain(match.balls[b.seq + 1].text);
     }
   });
-  it('the nudge comes before the call-back, and the call-back is the ball before Kohli’s dismissal', () => {
-    expect(plan.nudges[0].seq).toBeLessThan(plan.callbacks[0].seq);
-    expect(plan.callbacks[0].seq).toBe(seqOf(2, '11.1'));
-    const cb = plan.beats.find((b) => b.intent === 'callback')!;
-    expect(cb.friendId).toBe('dev'); // Kohli (Dev's hero) is at the crease
-    expect(cb.fact).not.toMatch(/out|caught|wicket/i); // never spoils the next ball
-  });
-  it('the call-back ball still has a line for anyone who never stepped away (no silence before Kohli’s wicket)', () => {
-    const at = plan.beats.filter((b) => b.seq === seqOf(2, '11.1'));
-    expect(at.some((b) => b.intent === 'callback')).toBe(true);
-    expect(at.some((b) => b.intent === 'chatter' && b.friendId !== 'dev')).toBe(true);
-  });
-  it('a Gang Call is offered when a chapter opens on a new over', () => {
-    expect(plan.callOffers.map((o) => `${o.innings}-${o.over}`)).toEqual(['2-2', '2-10']);
-  });
-  it('beats never use facts from later balls (spoiler rule): chatter fact is that ball’s own text', () => {
-    for (const b of plan.beats.filter((x) => x.intent === 'chatter')) expect(b.fact.startsWith(match.balls[b.seq].text)).toBe(true);
-  });
-  it('at most 2 reaction beats per ball, plus the scripted nudge/call-back; one line per friend per ball', () => {
-    const c = new Map<number, number>(); plan.beats.filter((b) => b.intent !== 'nudge_away' && b.intent !== 'callback').forEach((b) => c.set(b.seq, (c.get(b.seq) ?? 0) + 1));
-    expect(Math.max(...c.values())).toBeLessThanOrEqual(2);
-    const k = plan.beats.map((b) => `${b.seq}-${b.friendId}`); expect(new Set(k).size).toBe(k.length);
-    expect(plan.beats.some((b) => b.intent === 'nudge_away' && b.seq === seqOf(2, '2.4'))).toBe(true);
+  it('Gang Calls are off by default; switched on, they start only after the first-minutes guarantees', () => {
+    expect(plan.callOffers).toEqual([]);
+    const withCalls = buildPlan(match, gang(), 'me', tl, live, { gangCalls: true });
+    expect(withCalls.callOffers.length).toBeGreaterThan(0);
+    for (const o of withCalls.callOffers) expect(tl.timeOf(o.beforeSeq) - t0).toBeGreaterThanOrEqual(live.guaranteeWindowSec);
   });
 });
 

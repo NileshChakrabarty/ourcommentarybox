@@ -1,4 +1,6 @@
-// Away (S-4) and call-back (S-5), shown IN the panel. The match keeps playing beside it, uncovered.
+// Away (S-4) and call-back (S-5), shown IN the panel. The broadcast keeps playing live beside it, uncovered (v1.3:
+// no time-skip). A seconds counter shows how long you've been gone; the gang's lines wait for your catch-up.
+import { useEffect, useState } from 'react';
 import { useRoom } from '../../store/room';
 import { engine } from '../../services/engine';
 import { Avatar } from './Avatar';
@@ -6,6 +8,10 @@ import { Avatar } from './Avatar';
 export function AwayView() {
   const away = useRoom((s) => s.away)!;
   const members = useRoom((s) => s.members);
+  const stepSec = useRoom((s) => s.live?.stepAwaySec ?? 20);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { const iv = setInterval(() => setNow(Date.now()), 1_000); return () => clearInterval(iv); }, []);
+  const gone = Math.max(0, Math.floor((now - away.since) / 1000));
   const caller = away.calledBack ? members.find((m) => m.id === away.calledBack!.friendId) : undefined;
   if (caller) {
     return (
@@ -20,9 +26,9 @@ export function AwayView() {
   return (
     <section className="away" aria-label="You stepped away">
       <p className="away-big">You stepped away</p>
-      <p className="muted">The gang keeps watching. They'll call you back when something big happens.</p>
-      {away.skipping && <p className="away-skip">Demo shortcut: we're skipping the video ahead to the next big moment so you don't have to wait.</p>}
-      <button className="btn" onClick={() => void engine?.comeBack()}>I'm back</button>
+      <p className="away-timer num" aria-live="off">{gone} s</p>
+      <p className="muted">The match is still live and the gang is still talking. Come back in about {stepSec} s and they'll catch you up.</p>
+      <button className={`btn${gone >= stepSec ? ' btn-primary' : ''}`} onClick={() => void engine?.comeBack()}>I'm back</button>
     </section>
   );
 }

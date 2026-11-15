@@ -5,6 +5,8 @@
   grid-template-rows: var(--bar-h) minmax(0, 1fr);
   grid-template-areas: "bar bar" "stage panel";
 }
+/* Behind the scenes: the engine log gets its own column beside the panel, never over the match. */
+.room.with-xray { grid-template-columns: minmax(0, 1fr) var(--panel-w) var(--xray-w); grid-template-areas: "bar bar bar" "stage panel xray"; }
 .appbar {
   grid-area: bar; display: flex; align-items: center; gap: var(--s-3); padding: 0 var(--s-4);
   border-bottom: 1px solid var(--rule); min-width: 0;
@@ -12,6 +14,35 @@
 .appbar-mark { font: 900 var(--fs-4)/1 var(--font-display); color: var(--marigold); }
 .appbar-title { font: 700 var(--fs-4)/1 var(--font-display); color: var(--chalk); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .appbar-gap { flex: 1; }
+.appbar .btn.on { border-color: var(--marigold); color: var(--marigold); }
+/* LIVE badge: the broadcast can't be paused or rewound, like TV. */
+.live-badge {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 8px; border-radius: var(--r-1);
+  background: var(--red-strong); color: #fff; font: 800 var(--fs-1)/1 var(--font-ui); letter-spacing: .06em;
+}
+.live-badge span { animation: live-blink 1.6s steps(2, start) infinite; }
+@keyframes live-blink { to { opacity: .25; } }
+
+/* Live scoreboard strip above the player: the score at the ball on screen (Cricsheet). */
+.live-strip {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-2) var(--s-4); min-height: 40px;
+  padding: var(--s-2) var(--s-3); border-radius: var(--r-2); background: var(--ink-1); border: 1px solid var(--rule);
+  font-size: var(--fs-2); color: var(--chalk);
+}
+.ls-team, .ls-bowl { display: inline-flex; align-items: center; gap: 6px; }
+.ls-team::before, .ls-bowl::before { content: ''; width: 8px; height: 8px; border-radius: 2px; background: var(--t); }
+.ls-team b { font: 800 var(--fs-4)/1 var(--font-display); }
+.ls-overs, .ls-need { color: var(--chalk-2); }
+.ls-over { display: inline-flex; gap: 4px; margin-left: auto; }
+.ls-over i { font-style: normal; min-width: 22px; text-align: center; padding: 2px 4px; border-radius: 4px; background: var(--ink-2); font-size: var(--fs-1); }
+.ls-over i.w { background: var(--red-strong); color: #fff; }
+.ls-over i.b { background: var(--marigold-soft); color: var(--marigold); }
+
+/* The viewer's only player controls: mute and volume, beside the player. */
+.volume { display: flex; align-items: center; gap: var(--s-3); flex-wrap: wrap; }
+.vol-label input { width: 140px; accent-color: var(--marigold); }
+.stage-foot { display: flex; gap: var(--s-4); align-items: baseline; justify-content: space-between; flex-wrap: wrap; }
+.stage-foot a { color: var(--chalk-2); font-size: var(--fs-1); }
 
 .stage-col { grid-area: stage; min-width: 0; min-height: 0; overflow-y: auto; padding: var(--s-4); display: grid; align-content: start; gap: var(--s-4); }
 .stage { display: grid; gap: var(--s-2); }
@@ -26,23 +57,6 @@
 .yt-mount[hidden] { display: none; }
 .player-loading { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; }
 
-.chapters { display: grid; gap: var(--s-2); }
-.chapters-h { margin: 0; font: 700 var(--fs-3)/1 var(--font-display); color: var(--chalk-2); }
-.chapters ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-2); }
-.chapter {
-  width: 100%; height: 100%; text-align: left; display: grid; grid-template-columns: auto 1fr; column-gap: var(--s-3); row-gap: 2px;
-  padding: var(--s-3); border-radius: var(--r-2); background: var(--ink-1); border: 1px solid var(--rule-strong); color: var(--chalk);
-  transition: border-color var(--dur-1), background var(--dur-1);
-}
-.chapter:hover:not(:disabled) { border-color: var(--marigold); }
-.chapter:disabled { opacity: .5; cursor: not-allowed; }
-.chapter.on { border-color: var(--marigold); background: var(--marigold-soft); }
-.ch-n { grid-row: span 2; font: 900 var(--fs-5)/1 var(--font-display); color: var(--chalk-3); align-self: center; }
-.chapter.on .ch-n { color: var(--marigold); }
-.ch-t { font-weight: 700; font-size: var(--fs-2); }
-.ch-b { font-size: var(--fs-1); color: var(--chalk-2); }
-.chapter.done:not(.on) .ch-b { color: var(--ok); }
-
 .attribution { font-size: var(--fs-1); color: var(--chalk-3); line-height: var(--lh-ui); }
 .attribution a { color: var(--chalk-2); }
 
@@ -51,7 +65,8 @@
   .room { height: auto; min-height: 100dvh; grid-template-columns: 1fr; grid-template-rows: var(--bar-h) auto auto; grid-template-areas: "bar" "stage" "panel"; }
   .stage-col { overflow: visible; padding: var(--s-3) var(--s-3) 0; }
   .player-box { max-height: none; width: 100%; }
-  .chapters ol { grid-auto-flow: column; grid-template-columns: none; grid-auto-columns: minmax(200px, 72%); overflow-x: auto; }
-  .stage-foot { display: none; }
+  .room.with-xray { grid-template-columns: 1fr; grid-template-areas: "bar" "stage" "panel" "xray"; grid-template-rows: var(--bar-h) auto auto auto; }
+  .appbar { flex-wrap: wrap; height: auto; padding-block: var(--s-2); }
+  .ls-over { margin-left: 0; }
   .appbar-title { display: none; }
 }

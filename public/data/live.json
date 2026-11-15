@@ -1,0 +1,11 @@
+{
+  "note": "Simulated live broadcast (v1.3, ADR-0014). The viewer joins India's chase in progress a few seconds before ball joinBallSeq (2.3, Topley to Rohit), so the first wicket (2.4, Rohit lbw) lands about 38 s after 'Join the box'. The broadcast then runs on wall-clock time to endBallSeq (the last ball of the match). Times are video seconds on public/data/timeline.json.",
+  "joinBallSeq": 317,
+  "joinLeadSec": 6,
+  "endBallSeq": 536,
+  "guaranteeWindowSec": 180,
+  "comebackCardDelaySec": 14,
+  "nudgeAtSec": 120,
+  "stepAwaySec": 20,
+  "pacing": { "lullMinGapSec": 70, "lullFirstAfterSec": 45, "lullSecondMinGapSec": 140, "lullSecondBeforeNextSec": 35, "quietSec": 110, "quietSecEarly": 45, "warmSec": 420 }
+}

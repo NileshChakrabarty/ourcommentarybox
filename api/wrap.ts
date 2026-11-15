@@ -1,8 +1,8 @@
 // POST /api/wrap — end-of-match gang wrap captions + reel picks (F-WRAP). Ids validated against the request.
-import { handler, json, readJson, ApiError } from './_lib/http';
+import { handler, preflight, json, readJson, ApiError } from './_lib/http';
 import { WrapReq, parse } from './_lib/schemas';
 import { generateJSON } from './_lib/gemini';
-import { WRAP_SYSTEM } from './_lib/prompts';
+import { wrapSystem } from './_lib/prompts';
 import { cleanLine } from './_lib/safety';
 
 export const POST = handler('wrap', async (req) => {
@@ -10,7 +10,7 @@ export const POST = handler('wrap', async (req) => {
   const ids = new Set(body.highlights.map((h) => h.itemId));
   const seqs = new Set(body.moments.map((m) => m.seq));
   const { data, model } = await generateJSON({
-    system: WRAP_SYSTEM, user: JSON.stringify(body), temperature: 0.8, maxTokens: 400, timeoutMs: 9_000,
+    system: wrapSystem(body.language), user: JSON.stringify(body), temperature: 0.8, maxTokens: 400, timeoutMs: 9_000,
     model: process.env.GEMINI_MODEL_WRAP?.trim() || undefined,
   }, (x: any) => {
     const title = cleanLine(x?.title, 10);
@@ -28,3 +28,5 @@ export const POST = handler('wrap', async (req) => {
   });
   return json({ ...data, source: 'live', model });
 });
+
+export const OPTIONS = preflight;

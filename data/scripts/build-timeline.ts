@@ -37,6 +37,6 @@ const raw: RawEntry[] = match.balls.map((b) => {
 const tl = interpolate(raw);
 writeFileSync(`${DIR}/timeline.json`, JSON.stringify(tl, null, 0).replace(/\},\{/g, '},\n{'));
 copyFileSync(`${DIR}/timeline.json`, 'public/data/timeline.json');
-copyFileSync(`${DIR}/chapters.json`, 'public/data/chapters.json');
+copyFileSync(`${DIR}/live.json`, 'public/data/live.json');
 const n = (s: string) => tl.filter((e) => e.src === s).length;
 console.log(`timeline: ${tl.length} balls — ${n('tag')} manual tags, ${n('scorebug')} scorebug anchors, ${n('interp')} interpolated; ${unresolved} unresolved observations`);

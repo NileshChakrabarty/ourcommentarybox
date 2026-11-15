@@ -1,6 +1,7 @@
-// The dock: one prompt at a time (catch-up → line card → Gang Call), then reactions and the mic.
+// The dock: one prompt at a time (catch-up → line card → Gang Call, if switched on → the one coach hint),
+// then reactions and the mic.
 // Zero typing during play: you talk, tap a reaction, or send the line the gang hands you.
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRoom } from '../../store/room';
 import { engine, SELF } from '../../services/engine';
 import { CALL_LABEL } from '../../core/calls';
@@ -33,7 +34,7 @@ function LineCard() {
       <div className="prompt-actions">
         <button className="btn btn-primary btn-sm" onClick={send} disabled={sent}>{sent ? 'Sent' : 'Send it'}</button>
         {!sent && card.lines.length > 1 && <button className="btn btn-sm" onClick={() => engine?.nextLine()}>Another line <span className="muted num">{card.idx + 1}/{card.lines.length}</span></button>}
-        <span className="prompt-hint muted">or hold Space and say it</span>
+        <span className="prompt-hint muted">or say it: hold 🎤 or Space</span>
       </div>
     </section>
   );
@@ -80,6 +81,7 @@ function Catchup() {
     <section className="prompt catchup" aria-label="While you were away">
       <header className="prompt-head">
         <span className="prompt-label">While you were away</span>
+        <span className="muted small num">{c.toSeq > c.fromSeq ? `${c.toSeq - c.fromSeq} ball${c.toSeq - c.fromSeq === 1 ? '' : 's'}` : 'no balls'}</span>
         {c.source === 'live' && <span className="chip chip-live">live AI</span>}
       </header>
       {c.source === 'loading' ? <p className="shimmer">The gang is filling you in…</p> : <p key={c.source} className="cu-text">{c.text}</p>}
@@ -92,32 +94,6 @@ function Catchup() {
         </ul>
       )}
       <button className="btn btn-primary btn-sm" onClick={() => engine?.dismissCatchup()} autoFocus>Back to the banter</button>
-    </section>
-  );
-}
-
-const UP_NEXT_S = 10;
-function UpNext() {
-  const up = useRoom((s) => s.upNext);
-  const chapters = useRoom((s) => s.chapters);
-  const [left, setLeft] = useState(UP_NEXT_S);
-  useEffect(() => {
-    if (!up) return;
-    setLeft(UP_NEXT_S);
-    const iv = setInterval(() => setLeft((l) => l - 1), 1_000);
-    return () => clearInterval(iv);
-  }, [up]);
-  useEffect(() => { if (up && left <= 0) engine?.jumpTo(up.chapterId); }, [left, up]);
-  const ch = chapters.find((c) => c.id === up?.chapterId);
-  if (!up || !ch) return null;
-  return (
-    <section className="prompt up-next" aria-label="Up next">
-      <header className="prompt-head"><span className="prompt-label">Up next: {ch.title}</span><span className="chip num">{Math.max(0, left)}s</span></header>
-      <p className="muted small">{ch.blurb}</p>
-      <div className="prompt-actions">
-        <button className="btn btn-primary btn-sm" onClick={() => engine?.jumpTo(ch.id)}>Jump there now</button>
-        <button className="btn btn-sm" onClick={() => engine?.dismissUpNext()}>Keep watching</button>
-      </div>
     </section>
   );
 }
@@ -139,15 +115,19 @@ function Reactions() {
   );
 }
 
+/** The ONE coach hint of the journey (v1.3), until you talk or your first line card arrives. */
+function Coach() {
+  return <p className="coach" role="note">Hold <span aria-hidden="true">🎤</span><span className="sr-only">the talk button</span> or <kbd>Space</kbd> to talk</p>;
+}
+
 export function Dock() {
-  const mode = useRoom((s) => s.mode);
   const catchup = useRoom((s) => !!s.catchup);
   const card = useRoom((s) => !!s.card);
-  const upNext = useRoom((s) => !!s.upNext);
-  if (mode === 'rewatch') return <p className="rewatch-note">Rewatching with the gang. Their lines play on the balls they were said on.</p>;
+  const offer = useRoom((s) => !!s.callOffer);
+  const coach = useRoom((s) => s.coach);
   return (
     <div className="dock">
-      {catchup ? <Catchup /> : card ? <LineCard /> : upNext ? <UpNext /> : <CallRow />}
+      {catchup ? <Catchup /> : card ? <LineCard /> : offer ? <CallRow /> : coach ? <Coach /> : null}
       <Reactions />
       <TalkButton />
     </div>

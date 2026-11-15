@@ -135,6 +135,34 @@
 .cb-who { margin: 0; font: 900 var(--fs-5)/1 var(--font-display); color: var(--c); }
 .cb-line { margin: 0; font-size: var(--fs-4); line-height: 1.3; max-width: 28ch; }
 
+/* Banter language toggle (segmented) */
+.seg { display: inline-flex; border: 1px solid var(--rule-strong); border-radius: var(--r-pill); overflow: hidden; }
+.seg button { min-height: 30px; padding: 0 var(--s-3); background: transparent; color: var(--chalk-2); border: 0; font: 600 var(--fs-1)/1 var(--font-ui); }
+.seg button.on { background: var(--ink-3); color: var(--chalk); }
+.seg button:focus-visible { outline: 2px solid var(--marigold); outline-offset: -2px; }
+/* AI friends are labelled as AI everywhere they appear */
+.ai-tag { margin-left: 4px; padding: 0 4px; border-radius: 4px; border: 1px solid var(--rule-strong); font: 700 10px/14px var(--font-ui); color: var(--chalk-2); vertical-align: 1px; }
+/* the one coach hint */
+.coach { margin: 0; padding: var(--s-2) var(--s-3); border-radius: var(--r-2); background: var(--marigold-soft); color: var(--chalk); font-size: var(--fs-2); text-align: center; }
+.coach kbd { font: 700 var(--fs-1) var(--font-ui); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--rule-strong); }
+.away-timer { margin: 0; font: 900 var(--fs-6)/1 var(--font-display); color: var(--marigold); }
+
+/* Behind the scenes (X-ray) column */
+.xray { grid-area: xray; display: flex; flex-direction: column; min-height: 0; background: var(--ink-0); border-left: 1px solid var(--rule); }
+.xray-head { display: flex; align-items: center; justify-content: space-between; padding: var(--s-3) var(--s-3) 0; }
+.xray-head h2 { margin: 0; font: 800 var(--fs-4)/1 var(--font-display); }
+.xray-note { margin: var(--s-1) var(--s-3) var(--s-2); }
+.xray-list { list-style: none; margin: 0; padding: 0 var(--s-3) var(--s-3); overflow-y: auto; flex: 1; display: grid; align-content: start; gap: 6px; font-size: var(--fs-1); line-height: 1.4; }
+.x { display: grid; grid-template-columns: 34px 78px 1fr; gap: var(--s-2); padding-bottom: 6px; border-bottom: 1px solid var(--rule); }
+.x-ball { color: var(--chalk-2); }
+.x-kind { font-weight: 700; color: var(--chalk-2); }
+.x-ball-kind, .x-ball .x-kind { color: var(--chalk); }
+.x-moment .x-kind { color: var(--red); }
+.x-line .x-kind, .x-prefetch .x-kind { color: var(--sunny); }
+.x-voice .x-kind, .x-duck .x-kind { color: var(--ritu); }
+.x-away .x-kind, .x-live .x-kind { color: var(--marigold); }
+.x-text { color: var(--chalk); word-break: break-word; }
+
 @media (max-height: 760px) {
   .gangrow .avatar { --size: var(--avatar-s) !important; }
   .gr-hero { display: none; }
@@ -144,4 +172,5 @@
 @media (max-width: 900px) {
   .panel { border-left: none; border-top: 1px solid var(--rule); min-height: 70dvh; }
   .dock { position: sticky; bottom: 0; }
+  .xray { border-left: none; border-top: 1px solid var(--rule); max-height: 60dvh; }
 }

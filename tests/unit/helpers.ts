@@ -6,3 +6,8 @@ export const match: Match = parseMatch(JSON.parse(readFileSync('public/data/matc
 export const me = (l: Loyalty = DEFAULT_SELF_LOYALTY): Member => ({ id: SELF_ID, name: 'You', isSelf: true, isSimulated: false, colour: '', persona: '', style: '', loyalty: l });
 export const gang = (l?: Loyalty) => [me(l), ...FRIENDS];
 export const seqOf = (innings: 1 | 2, label: string) => match.balls.filter((b) => b.innings === innings && b.label === label).at(-1)!.seq;
+import { LiveConfigSchema, TimelineSchema } from '../../src/core/schema';
+import { Timeline } from '../../src/core/timeline';
+import type { LiveConfig } from '../../src/core/types';
+export const tl = new Timeline(TimelineSchema.parse(JSON.parse(readFileSync('public/data/timeline.json', 'utf8'))));
+export const live: LiveConfig = LiveConfigSchema.parse(JSON.parse(readFileSync('public/data/live.json', 'utf8')));

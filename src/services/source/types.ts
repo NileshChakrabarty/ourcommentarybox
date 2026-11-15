@@ -3,7 +3,8 @@ import type { SourceState } from '../../core/tracker';
 export type { SourceState };
 
 export interface MatchSource {
-  readonly kind: 'youtube' | 'scoreboard';
+  /** youtube = our embed (web host), scoreboard = fallback replay, video = the viewer's own <video> (extension host) */
+  readonly kind: 'youtube' | 'scoreboard' | 'video';
   getCurrentTime(): number;
   play(): void;
   pause(): void;

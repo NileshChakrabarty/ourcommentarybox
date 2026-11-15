@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { ApiError } from './http';
 
 const s = (max = 200) => z.string().trim().max(max);
+/** Banter language (v1.3): Hinglish by default, English on the toggle. */
+export const Language = z.enum(['hi', 'en']).default('hi');
 export const Person = z.object({ name: s(40), team: s(20).optional(), hero: s(60).optional(), isUser: z.boolean().optional() });
 
 export const LinesReq = z.object({
@@ -12,11 +14,11 @@ export const LinesReq = z.object({
   speaker: Person,
   target: Person.optional(),
   matchState: s(),
-  language: z.literal('en-IN').default('en-IN'),
+  language: Language,
 });
 export type LinesReq = z.infer<typeof LinesReq>;
 
-export const Intent = z.enum(['setup', 'chatter', 'lament', 'tease', 'gloat', 'brag', 'hype', 'nudge_away', 'callback', 'final', 'call_brag', 'call_lose']);
+export const Intent = z.enum(['setup', 'chatter', 'lull', 'away', 'lament', 'tease', 'gloat', 'brag', 'hype', 'nudge_away', 'callback', 'final', 'call_brag', 'call_lose']);
 export const ReactReq = z.object({
   beats: z.array(z.object({
     id: s(60), friendId: s(20), intent: Intent, fact: s(300),
@@ -29,22 +31,26 @@ export const ReactReq = z.object({
   matchState: s(),
   userName: s(40).default('you'),
   userTeam: s(20).optional(),
+  language: Language,
 }).refine((r) => r.beats.length + r.cards.length > 0, 'empty');
 export type ReactReq = z.infer<typeof ReactReq>;
 
-export const ReplyReq = z.object({ friendId: s(20), userSaid: s(200).min(1), matchState: s(), context: s(200).optional() });
-export const SpeakReq = z.object({ text: s(300).min(1), speaker: s(60) });
+export const ReplyReq = z.object({ friendId: s(20), userSaid: s(200).min(1), matchState: s(), context: s(200).optional(), language: Language });
+/** text is the line's `speech` form (Devanagari for Hinglish), voiced in `language`. */
+export const SpeakReq = z.object({ text: s(300).min(1), speaker: s(60), language: Language });
 export const CatchupReq = z.object({
   events: z.array(z.object({ seq: z.number().int(), text: s(160) })).max(60),
   said: z.array(z.object({ who: s(40), text: s(200) })).max(40),
   self: s(40).default('You'),
   maxWords: z.number().int().min(20).max(80).default(60),
+  language: Language,
 });
 export const WrapReq = z.object({
   match: s(), result: s(),
   stats: z.object({ mostRoasted: s(40).optional(), counts: z.record(z.number()).optional() }).passthrough(),
   moments: z.array(z.object({ seq: z.number().int(), text: s(160) })).max(30),
   highlights: z.array(z.object({ itemId: s(80), who: s(40), text: s(200), seq: z.number().int() })).max(50),
+  language: Language,
 });
 
 export function parse<S extends z.ZodTypeAny>(schema: S, body: unknown): z.infer<S> {

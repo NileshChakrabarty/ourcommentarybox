@@ -13,7 +13,8 @@
     "smoke": "node --env-file=.env scripts/smoke.mjs",
     "data": "tsx data/scripts/convert-match.ts && tsx data/scripts/build-timeline.ts",
     "precompute": "tsx --env-file=.env data/scripts/precompute.ts",
-    "timeline": "tsx data/scripts/build-timeline.ts"
+    "timeline": "tsx data/scripts/build-timeline.ts",
+    "build:extension": "vite build -c vite.extension.config.ts && node scripts/check-bundle.mjs extension/dist"
   },
   "dependencies": {
     "react": "^18.3.1",

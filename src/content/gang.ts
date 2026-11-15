@@ -8,31 +8,35 @@ export const SELF_ID = 'me';
 export const FRIENDS: Member[] = [
   {
     id: 'dev', name: 'Dev', isSelf: false, isSimulated: true, colour: '#ff8a3d',
-    speaker: 'dev_en_conversational',
+    speaker: 'dev_en_conversational', speakerHi: 'ratan_hi_sports',
     persona: 'Loud, loyal India fan who worships Virat Kohli and takes every Kohli failure personally. The eternal optimist.',
     style: 'Dramatic, exaggerates, calls everyone "bhai", always sure India will win from anywhere.',
     loyalty: { teamId: 'IND', heroId: 'v-kohli', villainId: 'dj-willey' },
   },
   {
     id: 'ritu', name: 'Ritu', isSelf: false, isSimulated: true, colour: '#f06bb5',
-    speaker: 'ritu_en_reels',
+    speaker: 'ritu_en_reels', speakerHi: 'ritu_hi_reels',
     persona: "Rishabh Pant superfan and the sharpest tongue in the gang. Keeps receipts on everyone's bad predictions.",
     style: 'Deadpan sarcasm, short punchy lines, loves quoting your own words back at you.',
     loyalty: { teamId: 'IND', heroId: 'rr-pant', villainId: 'ba-carse' },
   },
   {
     id: 'sunny', name: 'Sunny', isSelf: false, isSimulated: true, colour: '#5cc8ff',
-    speaker: 'sunny_en_social',
+    speaker: 'sunny_en_social', speakerHi: 'sunny_hi_reels',
     persona: 'The gang pessimist. India fan who always expects a collapse, a Yuzvendra Chahal loyalist, and secretly happiest when proved right.',
     style: 'Calm, doom-laden one-liners, "told you so" energy, dry humour.',
     loyalty: { teamId: 'IND', heroId: 'ys-chahal', villainId: 'rjw-topley' },
   },
 ];
 
-export const SPEAKERS = FRIENDS.map((f) => f.speaker!) as string[];
+/** TTS allowlists per banter language (ADR-0013): a persona's language must match the TTS language_code. */
+export const SPEAKERS_BY_LANG = { en: FRIENDS.map((f) => f.speaker!), hi: FRIENDS.map((f) => f.speakerHi!) };
+export const SPEAKERS = [...SPEAKERS_BY_LANG.en, ...SPEAKERS_BY_LANG.hi];
+export const speakerFor = (m: Pick<Member, 'speaker' | 'speakerHi'>, lang: 'hi' | 'en') => (lang === 'hi' ? m.speakerHi : m.speaker) ?? m.speaker!;
 
 /** Your default side for the demo: India, Rohit Sharma your hero, Reece Topley the bowler you love to hate. */
 export const DEFAULT_SELF_LOYALTY = { teamId: 'IND', heroId: 'rg-sharma', villainId: 'rjw-topley' };
+
 
 /** Heroes offered on the start screen (India batters in this match). */
 export const HERO_CHOICES = ['rg-sharma', 's-dhawan', 'v-kohli', 'rr-pant', 'sa-yadav', 'hh-pandya', 'ra-jadeja'];

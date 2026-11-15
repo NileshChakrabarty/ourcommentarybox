@@ -7,6 +7,8 @@ export const QUEUE_CAP = 5;
 export interface QueuedClip {
   id: string; src: Blob | string;
   onStart?: () => void; onEnd?: (played: boolean) => void;
+  /** playback actually started; duration in seconds (for the behind-the-scenes log) */
+  onPlaying?: (durationSec: number) => void;
 }
 
 class AudioEngine {
@@ -130,7 +132,7 @@ class AudioEngine {
     el.onended = () => this.finish(true);
     el.onerror = () => this.finish(false);
     clip.onStart?.(); this.emit(clip.id);
-    el.play().catch(() => this.finish(false));
+    el.play().then(() => clip.onPlaying?.(el.duration), () => this.finish(false));
   }
   private finish(played: boolean) {
     const p = this.playing; if (!p) return;

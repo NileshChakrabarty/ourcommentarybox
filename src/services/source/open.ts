@@ -16,6 +16,8 @@ export interface OpenOpts {
   /** a running source failed later: swap to the provided replacement (a retried embed, or the scoreboard) */
   onFallback: (s: MatchSource, reason: string) => void;
   readyTimeoutMs?: number;
+  /** live broadcast: the embed has no controls (ADR-0014) */
+  live?: boolean;
 }
 
 const transient = (why: string) => /error 5\b/.test(why);
@@ -35,7 +37,7 @@ export async function openSource(o: OpenOpts, attempt = 0): Promise<{ source: Ma
   };
   try {
     yt = await YouTubeSource.create({
-      mount: o.mount, videoId: o.video.id, start: o.start, readyTimeoutMs: o.readyTimeoutMs,
+      mount: o.mount, videoId: o.video.id, start: o.start, readyTimeoutMs: o.readyTimeoutMs, live: o.live,
       onError: (why) => { if (handedOver) lateFail(why); else earlyFail = why; },
     });
   } catch (e) {

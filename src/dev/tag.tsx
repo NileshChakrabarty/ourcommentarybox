@@ -7,9 +7,9 @@
 //   Export     download timeline.json (untagged balls re-interpolated, tagged:false)
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { parseMatch, TimelineSchema, ChapterFileSchema } from '../core/schema';
+import { parseMatch, TimelineSchema, LiveConfigSchema } from '../core/schema';
 import { interpolate, type TimelineEntry } from '../core/timeline';
-import type { Match, ChapterFile } from '../core/types';
+import type { Match, LiveConfig } from '../core/types';
 import { YouTubeSource } from '../services/source/youtube';
 import '../styles/global.css';
 import './tag.css';
@@ -22,10 +22,10 @@ type Stamp = { seq: number; prev: TimelineEntry };
 function TagTool() {
   const [match, setMatch] = useState<Match>();
   const [tl, setTl] = useState<TimelineEntry[]>([]);
-  const [chapters, setChapters] = useState<ChapterFile['chapters']>([]);
+  const [live, setLive] = useState<LiveConfig>();
   const [sel, setSel] = useState(0);
   const [inn, setInn] = useState<1 | 2>(2);
-  const [onlyChapters, setOnlyChapters] = useState(true);
+  const [onlyLive, setOnlyLive] = useState(true);
   const [now, setNow] = useState(0);
   const undo = useRef<Stamp[]>([]);
   const yt = useRef<YouTubeSource>();
@@ -34,12 +34,12 @@ function TagTool() {
 
   useEffect(() => {
     void (async () => {
-      const [m, t, c] = await Promise.all(['/data/match.json', '/data/timeline.json', '/data/chapters.json'].map((u) => fetch(u).then((r) => r.json())));
+      const [m, t, c] = await Promise.all(['/data/match.json', '/data/timeline.json', '/data/live.json'].map((u) => fetch(u).then((r) => r.json())));
       const saved = (() => { try { return JSON.parse([LS, ...LS_OLD].map((k) => localStorage.getItem(k)).find((v) => v != null) ?? 'null'); } catch { return null; } })();
       const match = parseMatch(m);
-      setMatch(match); setChapters(ChapterFileSchema.parse(c).chapters);
+      setMatch(match); setLive(LiveConfigSchema.parse(c));
       setTl(TimelineSchema.parse(saved ?? t) as TimelineEntry[]);
-      setSel(ChapterFileSchema.parse(c).chapters[0]?.startBallSeq ?? 0);
+      setSel(LiveConfigSchema.parse(c).joinBallSeq);
       if (mount.current && match.video) yt.current = await YouTubeSource.create({ mount: mount.current, videoId: match.video.id, onError: (w) => alert(`Player error: ${w}`) });
     })();
     const iv = setInterval(() => setNow(yt.current?.getCurrentTime() ?? 0), 100);
@@ -50,8 +50,8 @@ function TagTool() {
 
   const visible = useMemo(() => {
     if (!match) return [];
-    return match.balls.filter((b) => b.innings === inn && (!onlyChapters || chapters.some((c) => b.seq >= c.startBallSeq - 2 && b.seq <= c.endBallSeq + 2)));
-  }, [match, inn, onlyChapters, chapters]);
+    return match.balls.filter((b) => b.innings === inn && (!onlyLive || !live || (b.seq >= live.joinBallSeq - 2 && b.seq <= live.endBallSeq)));
+  }, [match, inn, onlyLive, live]);
 
   const setTime = (seq: number, t: number) => setTl((cur) => {
     const raw = cur.map((e) => (e.ballSeq === seq ? { ...e, videoTime: Math.round(t * 10) / 10, tagged: true, src: 'tag' as const } : e));
@@ -92,7 +92,7 @@ function TagTool() {
         <div className="tag-actions">
           <label><input type="radio" checked={inn === 1} onChange={() => setInn(1)} /> England innings</label>
           <label><input type="radio" checked={inn === 2} onChange={() => setInn(2)} /> India innings</label>
-          <label><input type="checkbox" checked={onlyChapters} onChange={(e) => setOnlyChapters(e.target.checked)} /> Chapter balls only</label>
+          <label><input type="checkbox" checked={onlyLive} onChange={(e) => setOnlyLive(e.target.checked)} /> Live-broadcast balls only</label>
           <button className="btn btn-primary btn-sm" onClick={exportJson}>Export timeline.json</button>
           <button className="btn btn-sm" onClick={() => { if (confirm('Discard local tags and reload the shipped timeline?')) { [LS, ...LS_OLD].forEach((k) => localStorage.removeItem(k)); location.reload(); } }}>Reset</button>
         </div>

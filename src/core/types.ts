@@ -32,10 +32,15 @@ export interface Match {
   teams: Team[]; players: Player[]; balls: Ball[];
 }
 
+/** A spoken line (v1.3): `display` is shown (Roman script), `speech` is voiced (Devanagari for Hinglish). */
+export interface Line { display: string; speech: string }
+
 export interface Loyalty { teamId: ID; heroId?: ID; villainId?: ID }
 export interface Member {
   id: ID; name: string; isSelf: boolean; isSimulated: boolean;
-  colour: string; persona: string; style: string; speaker?: string;
+  colour: string; persona: string; style: string;
+  /** Sarvam TTS persona for English banter, and for Hinglish (hi-IN) banter */
+  speaker?: string; speakerHi?: string;
   loyalty: Loyalty;
 }
 
@@ -80,13 +85,17 @@ export interface GangCall {
   status: 'open' | 'won' | 'lost';
 }
 
-/** A demo chapter ("Jump to moment"). Ball seqs index match.balls. */
-export interface Chapter {
-  id: ID; title: string; blurb: string;
-  startBallSeq: number; endBallSeq: number;
-  /** gang suggests stepping away after this ball */
-  nudgeSeq?: number;
-  /** if you stepped away before this ball, the gang calls you back on it */
-  callbackSeq?: number;
+/** Simulated live broadcast (v1.3, ADR-0014). Ball seqs index match.balls; seconds are video or live seconds. */
+export interface LiveConfig {
+  /** we join a few seconds before this ball is bowled */
+  joinBallSeq: number; joinLeadSec: number;
+  /** the broadcast runs on wall-clock time to this ball (the last of the match), then the wrap opens */
+  endBallSeq: number;
+  /** the first-minutes guarantees (early wicket, comeback card, step-away nudge) must all land inside this window */
+  guaranteeWindowSec: number;
+  /** after a wicket that hits you, the comeback card waits for the gang's teases (at least this long) */
+  comebackCardDelaySec: number;
+  /** seconds after joining when the gang suggests stepping away, and for how long */
+  nudgeAtSec: number; stepAwaySec: number;
+  pacing: { lullMinGapSec: number; lullFirstAfterSec: number; lullSecondMinGapSec: number; lullSecondBeforeNextSec: number; quietSec: number; quietSecEarly: number; warmSec: number };
 }
-export interface ChapterFile { journeyStart: ID; chapters: Chapter[] }

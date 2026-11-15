@@ -23,12 +23,15 @@ export const MatchSchema = z.object({
 
 export function parseMatch(x: unknown): Match { return MatchSchema.parse(x) as Match; }
 
-const ChapterSchema = z.object({
-  id: z.string(), title: z.string().max(60), blurb: z.string().max(120),
-  startBallSeq: z.number().int().nonnegative(), endBallSeq: z.number().int().nonnegative(),
-  nudgeSeq: z.number().int().optional(), callbackSeq: z.number().int().optional(),
-}).refine((c) => c.endBallSeq >= c.startBallSeq, 'chapter end before start');
-export const ChapterFileSchema = z.object({ journeyStart: z.string(), chapters: z.array(ChapterSchema).min(1) });
+export const LiveConfigSchema = z.object({
+  joinBallSeq: z.number().int().nonnegative(), joinLeadSec: z.number().min(0).max(60),
+  endBallSeq: z.number().int().nonnegative(), guaranteeWindowSec: z.number().positive(),
+  comebackCardDelaySec: z.number().min(0), nudgeAtSec: z.number().positive(), stepAwaySec: z.number().positive(),
+  pacing: z.object({
+    lullMinGapSec: z.number().positive(), lullFirstAfterSec: z.number().positive(), lullSecondMinGapSec: z.number().positive(),
+    lullSecondBeforeNextSec: z.number().positive(), quietSec: z.number().positive(), quietSecEarly: z.number().positive(), warmSec: z.number().positive(),
+  }),
+}).refine((c) => c.endBallSeq > c.joinBallSeq, 'live end before join');
 export const TimelineSchema = z.array(z.object({
   ballSeq: z.number().int().nonnegative(), innings: z.union([z.literal(1), z.literal(2)]), over: z.number().int(), ball: z.number().int(),
   videoTime: z.number().nonnegative(), tagged: z.boolean(), src: z.enum(['tag', 'scorebug', 'interp']).optional(),

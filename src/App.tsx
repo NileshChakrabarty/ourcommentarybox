@@ -1,24 +1,25 @@
-import { Component, useEffect, type ReactNode } from 'react';
+import { Component, lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { useRoom, patch } from './store/room';
-import { parseMatch, ChapterFileSchema, TimelineSchema } from './core/schema';
+import { parseMatch, LiveConfigSchema, TimelineSchema } from './core/schema';
 import { Timeline } from './core/timeline';
-import type { ChapterFile } from './core/types';
-import { loadPrecomputed, refreshShelf, type LiveSnapshot } from './services/engine';
+import { engine, loadPrecomputed, refreshShelf, type LiveSnapshot } from './services/engine';
 import { storage } from './services/storage/db';
-import { Start } from './panel/screens/Start';
-import { LiveScreen } from './LiveScreen';
+import { Start } from './hosts/web/Start';
+import { LiveScreen } from './hosts/web/LiveScreen';
 import { WrapScreen } from './panel/screens/Wrap';
 import { Shelf } from './panel/screens/Shelf';
 import { Toast } from './panel/components/Toast';
+import { isHow } from './nav';
+
+const HowItWorks = lazy(() => import('./how/HowItWorks'));
 
 async function getJSON(url: string) { const r = await fetch(url); if (!r.ok) throw new Error(`${url}: HTTP ${r.status}`); return r.json(); }
 
 async function loadMatch() {
   patch({ loadError: undefined });
   try {
-    const [m, t, c] = await Promise.all([getJSON('/data/match.json'), getJSON('/data/timeline.json'), getJSON('/data/chapters.json')]);
-    const chapters = ChapterFileSchema.parse(c) as ChapterFile;
-    patch({ match: parseMatch(m), timeline: new Timeline(TimelineSchema.parse(t)), chapters: chapters.chapters, journeyStart: chapters.journeyStart });
+    const [m, t, l] = await Promise.all([getJSON('/data/match.json'), getJSON('/data/timeline.json'), getJSON('/data/live.json')]);
+    patch({ match: parseMatch(m), timeline: new Timeline(TimelineSchema.parse(t)), live: LiveConfigSchema.parse(l) });
   } catch {
     patch({ loadError: "The match data didn't load. Check your connection, then try again." });
   }
@@ -45,18 +46,26 @@ export function App() {
   const loadError = useRoom((s) => s.loadError);
 
   useEffect(() => {
+    if (isHow()) patch({ screen: 'how' });
     void loadMatch(); void loadPrecomputed(); void refreshShelf();
     void storage.available().then((ok) => patch({ storageOk: ok }));
-    void storage.getLive<LiveSnapshot>().then((l) => l?.videoTime !== undefined && patch({ resumable: { roomId: l.roomId, videoTime: l.videoTime, label: l.label } }));
+    void storage.getLive<LiveSnapshot>().then((l) => l?.joinedAt && patch({ resumable: { roomId: l.roomId } }));
+    // a hidden tab counts as stepping away: the broadcast keeps going, the catch-up plays when you're back
+    const vis = () => { if (useRoom.getState().screen === 'live') engine?.setHidden(document.hidden); };
+    const pop = () => patch({ screen: isHow() ? 'how' : 'start' });
+    document.addEventListener('visibilitychange', vis);
+    window.addEventListener('popstate', pop);
+    return () => { document.removeEventListener('visibilitychange', vis); window.removeEventListener('popstate', pop); };
   }, []);
 
+  if (screen === 'how') return <Suspense fallback={<div className="fullscreen-msg"><p className="shimmer">Loading…</p></div>}><HowItWorks /></Suspense>;
   if (loadError) return (
     <div className="fullscreen-msg" role="alert">
       <p>{loadError}</p>
       <button className="btn btn-primary" onClick={() => void loadMatch()}>Try again</button>
     </div>
   );
-  if (!match) return <div className="fullscreen-msg" aria-busy="true"><p className="shimmer">Setting up the room…</p></div>;
+  if (!match) return <div className="fullscreen-msg" aria-busy="true"><p className="shimmer">Setting up the box…</p></div>;
 
   return (
     <ErrorBoundary>
@@ -68,3 +77,4 @@ export function App() {
     </ErrorBoundary>
   );
 }
+

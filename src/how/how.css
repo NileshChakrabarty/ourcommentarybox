@@ -1,0 +1,21 @@
+/* /how-it-works: a two-minute read. Tokens only; the diagram is inline SVG styled from the same tokens (both themes). */
+.how { max-width: 760px; margin: 0 auto; padding: var(--s-5) clamp(var(--s-4), 4vw, var(--s-6)) var(--s-7); }
+.how-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--s-6); }
+.how-mark { font: 900 var(--fs-4)/1 var(--font-display); color: var(--marigold); text-decoration: none; }
+.how h1 { margin: 0 0 var(--s-3); font: 900 clamp(36px, 6vw, 56px)/.95 var(--font-display); }
+.how-lede { font-size: var(--fs-4); line-height: 1.4; margin: 0 0 var(--s-5); max-width: 60ch; }
+.how-sec h2 { margin: var(--s-6) 0 var(--s-2); font: 800 var(--fs-5)/1.05 var(--font-display); }
+.how-sec p { margin: 0 0 var(--s-3); line-height: 1.6; color: var(--chalk); max-width: 68ch; }
+.how .btn { margin-top: var(--s-5); text-decoration: none; display: inline-flex; }
+
+.diagram { margin: 0; padding: var(--s-3); background: var(--ink-1); border: 1px solid var(--rule); border-radius: var(--r-3); }
+.diagram svg { display: block; width: 100%; height: auto; font-family: var(--font-ui); }
+.dg-box rect { fill: var(--ink-2); stroke: var(--rule-strong); stroke-width: 1.5; }
+.dg-box text { fill: var(--chalk); font-size: 15px; font-weight: 600; }
+.dg-box.key rect { stroke: var(--marigold); stroke-width: 2; }
+.dg-arrow line { stroke: var(--chalk-2); stroke-width: 1.6; }
+.dg-arrow text { fill: var(--chalk-2); font-size: 12px; }
+#dg-head path { fill: var(--chalk-2); }
+.dg-proxy { fill: none; stroke: var(--rule-strong); stroke-dasharray: 5 5; }
+.dg-proxy-label { fill: var(--chalk-2); font-size: 12px; }
+@media (max-width: 600px) { .dg-box text { font-size: 17px; } .dg-arrow text, .dg-proxy-label { font-size: 14px; } }

@@ -1,126 +1,181 @@
 {
  "beats": {
-  "314-ritu-setup": {
-   "text": "Two overs done, zero runs on the board. Topley taking the ball to bowl to Rohit now.",
-   "audio": "/audio/friends/314-ritu-setup.mp3"
+  "hi:316-dev-setup@13912": {
+   "text": "Bhai log live aa gaye! Topley to Rohit, India 4 for 0 after 2.2, chasing 247.",
+   "audio": "/audio/friends/hi-316-dev-setup-at-13912.mp3"
   },
-  "315-sunny-chatter": {
-   "text": "Another dot. The collapse process has officially commenced, guys.",
-   "audio": "/audio/friends/315-sunny-chatter.mp3"
+  "hi:318-dev-tease": {
+   "text": "Bhai tera Hitman 10 ball zero pe lbw ho gaya Topley ki ball pe!",
+   "audio": "/audio/friends/hi-318-dev-tease.mp3"
   },
-  "316-ritu-chatter": {
-   "text": "Hey, four leg-byes count on the scoreboard just the same. We take those.",
-   "audio": "/audio/friends/316-ritu-chatter.mp3"
+  "hi:318-ritu-tease": {
+   "text": "Rohit zero pe out, 10 balls waste karke. Bolo, kidhar gaye tumhare badi batein?",
+   "audio": "/audio/friends/hi-318-ritu-tease.mp3"
   },
-  "317-dev-chatter": {
-   "text": "No problem at all, bhai! Rohit is just taking his time to settle down.",
-   "audio": "/audio/friends/317-dev-chatter.mp3"
+  "hi:318-ritu-lull@13994": {
+   "text": "Replay mein dekho, Topley ne Rohit ko duck pe lbw kar diya. India 4 for 1.",
+   "audio": "/audio/friends/hi-318-ritu-lull-at-13994.mp3"
   },
-  "318-ritu-tease": {
-   "text": "Ten balls, zero runs, and trapped right in front. Brilliant start for your captain, bro.",
-   "audio": "/audio/friends/318-ritu-tease.mp3"
+  "hi:318-sunny-nudge_away@14031": {
+   "text": "Arre tu jaa, 20 second mein chai le aao. Hum yahan sab sambhaal lenge.",
+   "audio": "/audio/friends/hi-318-sunny-nudge_away-at-14031.mp3"
   },
-  "318-dev-tease": {
-   "text": "Bhai, you said Rohit was playing the long game today! What happened?",
-   "audio": "/audio/friends/318-dev-tease.mp3"
+  "hi:318-dev-lull@14094": {
+   "text": "Rohit ke out hone ke baad ab King Kohli walk out kar rahe hain pitch pe!",
+   "audio": "/audio/friends/hi-318-dev-lull-at-14094.mp3"
   },
-  "318-sunny-nudge_away": {
-   "text": "Go make a chai, you, Rohit just walked back and we will call you when anything actually happens.",
-   "audio": "/audio/friends/318-sunny-nudge_away.mp3"
+  "hi:320-ritu-chatter": {
+   "text": "Topley Maiden over phenk raha hai aur tum log abhi se panic kar rahe ho.",
+   "audio": "/audio/friends/hi-320-ritu-chatter.mp3"
   },
-  "362-ritu-setup": {
-   "text": "Ten overs gone, score is twenty eight for two, and Carse is running in to Kohli.",
-   "audio": "/audio/friends/362-ritu-setup.mp3"
+  "hi:322-dev-chatter": {
+   "text": "Arre Willey ko aane do, King ek boundary se poora pressure khatam kar dega bhai!",
+   "audio": "/audio/friends/hi-322-dev-chatter.mp3"
   },
-  "363-sunny-chatter": {
-   "text": "Just a single, taking it slow as usual.",
-   "audio": "/audio/friends/363-sunny-chatter.mp3"
+  "hi:324-sunny-chatter": {
+   "text": "Ek aur dot ball. Required rate badhta ja raha hai, collapse aane hi wala hai.",
+   "audio": "/audio/friends/hi-324-sunny-chatter.mp3"
   },
-  "364-ritu-lament": {
-   "text": "Zero on the board, this is just painful.",
-   "audio": "/audio/friends/364-ritu-lament.mp3"
+  "hi:364-ritu-lament": {
+   "text": "Zero pe out ho gaya Pant! Carse ki ball pe aisa shot maarne ki kya zaroorat thi?",
+   "audio": "/audio/friends/hi-364-ritu-lament.mp3"
   },
-  "364-sunny-tease": {
-   "text": "Ritu, your hero really showed us how not to bat today.",
-   "audio": "/audio/friends/364-sunny-tease.mp3"
+  "hi:364-sunny-tease": {
+   "text": "Ritu, tera Pant toh paanch ball mein duck pe chala gaya. Kahan gaya wo sharp finisher?",
+   "audio": "/audio/friends/hi-364-sunny-tease.mp3"
   },
-  "365-ritu-chatter": {
-   "text": "Another single added, need to build something here.",
-   "audio": "/audio/friends/365-ritu-chatter.mp3"
+  "hi:370-dev-lament": {
+   "text": "Nahi yaar! Kohli bhi out ho gaya! Willey ki ball pe Buttler ne catch pakad liya!",
+   "audio": "/audio/friends/hi-370-dev-lament.mp3"
   },
-  "366-dev-chatter": {
-   "text": "Solid defense from the king, bhai, just wearing them down before the storm.",
-   "audio": "/audio/friends/366-dev-chatter.mp3"
+  "hi:370-sunny-tease": {
+   "text": "Dev bhai, tumhara King toh 16 runs pe chala gaya. Abhi bhi chase easy lag raha hai?",
+   "audio": "/audio/friends/hi-370-sunny-tease.mp3"
   },
-  "367-ritu-chatter": {
-   "text": "Taking singles now, but someone needs to wake up the scoreboard soon.",
-   "audio": "/audio/friends/367-ritu-chatter.mp3"
+  "hi:532-dev-tease": {
+   "text": "Sunny, tumhara defensive powerhouse Chahal toh 3 run pe bowled ho gaya!",
+   "audio": "/audio/friends/hi-532-dev-tease.mp3"
   },
-  "368-sunny-chatter": {
-   "text": "Another dot. We are sleepwalking right into a trap.",
-   "audio": "/audio/friends/368-sunny-chatter.mp3"
+  "hi:532-sunny-lament": {
+   "text": "Arre yaar, Chahal bhi 3 run banake out ho gaya. Topley ne toh bilkul tod diya.",
+   "audio": "/audio/friends/hi-532-sunny-lament.mp3"
   },
-  "369-dev-callback": {
-   "text": "Get back here right now, you, Kohli is facing Willey and things are moving.",
-   "audio": "/audio/friends/369-dev-callback.mp3"
+  "hi:536-dev-final": {
+   "text": "England 100 runs se jeet gayi yaar. Bahut bura match tha hamare liye.",
+   "audio": "/audio/friends/hi-536-dev-final.mp3"
   },
-  "370-dev-lament": {
-   "text": "No way, how did that happen, the king is gone and my heart is broken, bhai.",
-   "audio": "/audio/friends/370-dev-lament.mp3"
+  "hi:536-sunny-final": {
+   "text": "Pura collapse ho gaya, 100 runs se haare hain hum. Mujhko pehle se pata tha.",
+   "audio": "/audio/friends/hi-536-sunny-final.mp3"
   },
-  "370-ritu-tease": {
-   "text": "Dev, your king is back in the hut already, time to start the usual panic.",
-   "audio": "/audio/friends/370-ritu-tease.mp3"
+  "en:316-dev-setup@13912": {
+   "text": "Alright bhai, we are live! Four leg byes, Topley bowling to Rohit, four for no loss.",
+   "audio": "/audio/friends/en-316-dev-setup-at-13912.mp3"
   },
-  "532-sunny-lament": {
-   "text": "There goes our anchor. Three runs off thirteen. Exactly as I expected.",
-   "audio": "/audio/friends/532-sunny-lament.mp3"
+  "en:318-dev-tease": {
+   "text": "Bhai, your hitman walked off without even opening his account!",
+   "audio": "/audio/friends/en-318-dev-tease.mp3"
   },
-  "532-dev-tease": {
-   "text": "Sunny bhai, your main man gave us a proper masterclass in batting today, absolute legend.",
-   "audio": "/audio/friends/532-dev-tease.mp3"
+  "en:318-ritu-tease": {
+   "text": "Ten balls for a duck, bro? What happened to the big explosive start?",
+   "audio": "/audio/friends/en-318-ritu-tease.mp3"
   },
-  "534-dev-setup": {
-   "text": "Last pair in, brothers. One forty-six for nine, and Topley is running in to Prasidh.",
-   "audio": "/audio/friends/534-dev-setup.mp3"
+  "en:318-ritu-lull@13994": {
+   "text": "Replays show Topley trapped Rohit right in front. Four for one now.",
+   "audio": "/audio/friends/en-318-ritu-lull-at-13994.mp3"
   },
-  "536-dev-final": {
-   "text": "Well fought, bhai, we fell short today, but we will bounce back stronger next time.",
-   "audio": "/audio/friends/536-dev-final.mp3"
+  "en:318-sunny-nudge_away@14031": {
+   "text": "Bro, step away for twenty seconds and grab a chai. We will catch you up.",
+   "audio": "/audio/friends/en-318-sunny-nudge_away-at-14031.mp3"
   },
-  "536-sunny-final": {
-   "text": "Told you all from the very first over. Nothing surprising here at all.",
-   "audio": "/audio/friends/536-sunny-final.mp3"
+  "en:318-dev-lull@14094": {
+   "text": "Rohit is gone, but look who is walking out now! Virat Kohli takes the crease!",
+   "audio": "/audio/friends/en-318-dev-lull-at-14094.mp3"
   },
-  "369-ritu-chatter": {
-   "text": "Another dot ball, bro. At this rate we are going to need a time machine.",
-   "audio": "/audio/friends/369-ritu-chatter.mp3"
+  "en:320-ritu-chatter": {
+   "text": "Another dot from Topley. The scoreboard is moving slower than a weekend.",
+   "audio": "/audio/friends/en-320-ritu-chatter.mp3"
   },
-  "535-sunny-chatter": {
-   "text": "Just one wicket left. The inevitable is finally arriving.",
-   "audio": "/audio/friends/535-sunny-chatter.mp3"
+  "en:322-dev-chatter": {
+   "text": "Willey bowls another dot. No problem bhai, building up energy for a big over.",
+   "audio": "/audio/friends/en-322-dev-chatter.mp3"
+  },
+  "en:324-sunny-chatter": {
+   "text": "Another dot ball. The dots are stacking up just as I predicted.",
+   "audio": "/audio/friends/en-324-sunny-chatter.mp3"
+  },
+  "en:364-ritu-lament": {
+   "text": "Pant gone for a duck. My heart just dropped completely, not Rishabh today.",
+   "audio": "/audio/friends/en-364-ritu-lament.mp3"
+  },
+  "en:364-sunny-tease": {
+   "text": "Ritu, where is your hero now? A five-ball duck for Pant, just like I feared.",
+   "audio": "/audio/friends/en-364-sunny-tease.mp3"
+  },
+  "en:370-dev-lament": {
+   "text": "Kohli is out for sixteen. No bhai, this cannot be happening to us right now.",
+   "audio": "/audio/friends/en-370-dev-lament.mp3"
+  },
+  "en:370-sunny-tease": {
+   "text": "Dev bhai, Kohli scored sixteen. Is this still the masterclass you promised us?",
+   "audio": "/audio/friends/en-370-sunny-tease.mp3"
+  },
+  "en:532-dev-tease": {
+   "text": "Sunny, your main man Chahal got three off thirteen. Incredible fightback, truly.",
+   "audio": "/audio/friends/en-532-dev-tease.mp3"
+  },
+  "en:532-sunny-lament": {
+   "text": "Even Chahal is gone now. This whole innings was doomed from the start.",
+   "audio": "/audio/friends/en-532-sunny-lament.mp3"
+  },
+  "en:536-dev-final": {
+   "text": "Lost by a hundred runs, bhai. I cannot believe this unfolded today.",
+   "audio": "/audio/friends/en-536-dev-final.mp3"
+  },
+  "en:536-sunny-final": {
+   "text": "A hundred run defeat. Exactly the disaster I expected to see today.",
+   "audio": "/audio/friends/en-536-sunny-final.mp3"
   }
  },
  "cards": {
-  "R1-318-me|comeback": [
-   "Relax Ritu, even a double-hundred machine gets a good ball early on.",
-   "At least Rohit took ten balls to get out, Ritu, unlike your wild predictions!",
-   "Save the sarcasm Ritu, we still have a long chase ahead of us."
+  "hi:R1-318-me|comeback": [
+   "Arre Dev bhai, shanti rakho! Ek match se Rohit ka talent kam nahi hota.",
+   "Ritu, chill kar! Chasing 247 is nothing, abhi Kohli baaki hai na.",
+   "Rohit out hua toh kya, abhi mera aur tumhara hero Kohli baaki hai!"
   ],
-  "R1-364-ritu|tease": [
-   "Ritu, is that fearless batting or just giving free catches to Carse?",
-   "Five balls, zero runs! Where are all those outrageous Pant shots now, Ritu?",
-   "Keep keeping receipts on my bad predictions, Ritu, while Pant leaves for a duck!"
+  "hi:R1-364-ritu|tease": [
+   "Kahan gaya Pant ka fearless shot, Ritu? Zero pe out ho gaya!",
+   "Ritu, tera Pant 5 ball mein zero karke Carse ko wicket de gaya!",
+   "Pant ka alag hi shot tha ye Ritu, zero pe pavillion laut gaya!"
   ],
-  "R1-370-dev|tease": [
-   "Dev, your run machine with forty ODI tons just walked off for sixteen!",
-   "Is chasing still Kohli's favorite sport, Dev, or should we ask Willey?",
-   "Dev bhai, your eternal optimism is getting tested real hard after that sixteen."
+  "hi:R1-370-dev|tease": [
+   "Dev bhai, tera run machine target chase karte hue 16 pe out ho gaya!",
+   "Dev, kahan gaye Virat ke 40 hundreds? Willey ne 16 pe pack kar diya!",
+   "Sunny bhai dekho, Dev ka King 25 balls mein 16 karke chalta bana!"
   ],
-  "R1-532-sunny|tease": [
-   "Sunny, even your chess-playing hero Chahal couldn't trick the bowler with three runs.",
-   "That masterclass of three runs from Chahal really saved the innings, didn't it, Sunny?",
-   "Chahal tried his best chess move and got bowled for three, right Sunny?"
+  "hi:R1-532-sunny|tease": [
+   "Sunny, tere chess master Chahal ne Topley ki ball pe kya grandmaster move khela!",
+   "Sunny, Chahal toh teen run pe bowled ho gaya, tera prediction toh bilkul fail nikla!"
+  ],
+  "en:R1-318-me|comeback": [
+   "Quiet Dev, one early wicket happens to every team!",
+   "At least Rohit took us to four runs before leaving!",
+   "Relax Ritu, three double hundreds mean he earns one bad ball!"
+  ],
+  "en:R1-364-ritu|tease": [
+   "Ritu, where are those fearless shots from Pant now?",
+   "Five balls for a duck, Ritu? Keep that receipt!",
+   "Pant tried playing like nobody else and gave a catch!"
+  ],
+  "en:R1-370-dev|tease": [
+   "Dev, your master chaser just got out for sixteen!",
+   "Where are those forty-plus hundreds now, Dev?",
+   "Sixteen off twenty-five, Sunny called this collapse coming!"
+  ],
+  "en:R1-532-sunny|tease": [
+   "Sunny, your grand chess grandmaster Chahal just got checkmated for three runs.",
+   "Sunny bhai, looks like Chahal ran out of chess moves against Topley.",
+   "Chahal got bowled for three, so much for tempting batters today, Sunny."
   ]
  }
 }

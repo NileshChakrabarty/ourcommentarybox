@@ -1,5 +1,8 @@
 // YouTubeSource: the official ECB upload, embedded with the YouTube IFrame Player API.
-// Embed only — never downloaded, re-hosted or overlaid; YouTube's own controls and branding stay visible.
+// Embed only — never downloaded, re-hosted or overlaid; YouTube's branding stays visible.
+// v1.3 live mode (ADR-0014): controls=0 and disablekb=1, so there is no seek bar, pause or keyboard seeking;
+// the viewer gets mute/volume in our own controls beside the player. modestbranding is requested where allowed
+// (YouTube no longer hides its logo for it, so the branding stays visible either way).
 import { Emitter, type MatchSource, type SourceState } from './types';
 
 /* Minimal typings for the parts of the IFrame API we use. */
@@ -44,7 +47,13 @@ export function mapState(s: number): SourceState {
   }
 }
 
-export interface YouTubeOpts { mount: HTMLElement; videoId: string; start?: number; onError: (reason: string) => void; readyTimeoutMs?: number }
+export interface YouTubeOpts { mount: HTMLElement; videoId: string; start?: number; onError: (reason: string) => void; readyTimeoutMs?: number; live?: boolean }
+
+/** Player parameters. Live: no controls, no keyboard, no related videos, no annotations. */
+export function playerVars(o: { start?: number; live?: boolean }, origin: string): Record<string, string | number> {
+  const base = { playsinline: 1, rel: 0, start: Math.floor(o.start ?? 0), origin };
+  return o.live ? { ...base, controls: 0, disablekb: 1, modestbranding: 1, iv_load_policy: 3, fs: 0 } : { ...base, modestbranding: 0 };
+}
 
 export class YouTubeSource implements MatchSource {
   readonly kind = 'youtube' as const;
@@ -65,7 +74,7 @@ export class YouTubeSource implements MatchSource {
     o.mount.replaceChildren(el);
     src.player = new YT.Player(el, {
       videoId: o.videoId, width: '100%', height: '100%',
-      playerVars: { playsinline: 1, rel: 0, modestbranding: 0, start: Math.floor(o.start ?? 0), origin: location.origin },
+      playerVars: playerVars(o, location.origin),
       events: {
         onReady: () => { clearTimeout(readyTimer); src.ready = true; src.pending.splice(0).forEach((f) => f()); },
         onStateChange: (e) => { src.state = mapState(e.data); src.states.emit(src.state); },

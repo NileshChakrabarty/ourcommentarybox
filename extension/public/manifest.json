@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "Apna Commentary Box",
+  "short_name": "Apna Box",
+  "version": "0.1.0",
+  "description": "Your gang's voice commentary beside the match on YouTube, pinned to the ball. Demo: England v India, 2nd ODI 2022.",
+  "minimum_chrome_version": "116",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEArxfW+Y54383zxmAc6aU7MOWVixX8P8MFiQtS3Rerswvl5/JcT+ZJcVHMxR89pXpPgAV6YD3u5dK1vePuaGCBZsUJm+PWXBjd7A7aTzNqSJ4Ejpp9V6p5UdbrYsQRBuBIfIhdHB4wbbjqyqFQiM7lPklM3MVMnu0DQQw9DuDYSNiaxI61VSBzX5JT2Owy37OeiYHE0eqk3YzBhsRV05koyhT95h+3BdWglHi8vrIUwJgMV692OhFCSFpOFqtLO1B2zmnt+QVFB1yIwHfGZZY5ul00ohhcuza63sV/zsudcgjgSN90bpvJRM+Hc7q5DbBpw7eLLjdMc8hoCyoIROtKsQIDAQAB",
+  "permissions": ["sidePanel"],
+  "background": { "service_worker": "background.js" },
+  "side_panel": { "default_path": "sidepanel.html" },
+  "action": { "default_title": "Open Apna Box", "default_icon": { "16": "icons/icon-16.png", "32": "icons/icon-32.png" } },
+  "icons": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "128": "icons/icon-128.png" },
+  "content_scripts": [{ "matches": ["https://www.youtube.com/watch*"], "js": ["content.js"], "run_at": "document_idle" }]
+}

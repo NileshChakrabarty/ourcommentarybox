@@ -1,21 +1,26 @@
 // UI state (Zustand). Logic lives in services/engine.ts; this store is the single source the React tree renders.
 import { create } from 'zustand';
-import type { Chapter, FeedItem, GangCall, Loyalty, Match, Member, Moment, CallType } from '../core/types';
+import type { FeedItem, GangCall, LiveConfig, Loyalty, Match, Member, Moment, CallType } from '../core/types';
 import type { RoomPlan } from '../core/plan';
 import type { CardKind } from '../core/moments/rules';
 import type { Timeline } from '../core/timeline';
 import type { SourceState } from '../core/tracker';
 import type { MicState } from '../services/audio/recorder';
 import { DEFAULT_SELF_LOYALTY } from '../content/gang';
+import { loadLang, loadGangCalls, type Lang } from '../services/lang';
 
-export type Screen = 'start' | 'live' | 'wrap' | 'shelf';
+export type Screen = 'start' | 'live' | 'wrap' | 'shelf' | 'how';
 export type LineSource = 'live' | 'precomputed' | 'template';
-export interface CardState { moment: Moment; kind: CardKind; lines: string[]; idx: number; source: LineSource; targetId?: string; usedIdx?: number }
+export interface CardState { moment: Moment; kind: CardKind; lines: string[]; idx: number; source: LineSource; targetId?: string; usedIdx?: number; shownAt: number }
 export interface CallOffer { innings: 1 | 2; over: number; beforeSeq: number; bowler: string; friendCalls: { memberId: string; type: CallType }[] }
-export interface AwayState { active: boolean; startSeq: number; skipping?: boolean; calledBack?: { friendId: string; text: string } }
+/** auto = the tab was hidden (no away screen; the catch-up shows when the viewer is back) */
+export interface AwayState { active: boolean; startSeq: number; since: number; auto?: boolean; calledBack?: { friendId: string; text: string } }
 export interface Catchup { text: string; source: 'live' | 'fallback' | 'loading'; fromSeq: number; toSeq: number; missed: string[] }
 export interface WrapState {
   title: string; source: 'live' | 'fallback';
+  /** what THIS viewer experienced: from the ball they joined on to the ball they left on */
+  watched: { fromSeq: number; toSeq: number; minutes: number; complete: boolean };
+  top: { seq: number; text: string }[];
   roast?: { itemId: string; title: string };
   high?: { seq: number; caption: string }; low?: { seq: number; caption: string };
   reel: string[];
@@ -25,29 +30,29 @@ export interface MemorySummary { id: string; title: string; date: string; endedA
 
 interface RoomState {
   screen: Screen;
-  match?: Match; timeline?: Timeline; chapters: Chapter[]; journeyStart?: string; loadError?: string;
+  match?: Match; timeline?: Timeline; live?: LiveConfig; loadError?: string;
+  lang: Lang;
   selfLoyalty: Loyalty;
   members: Member[];
   plan?: RoomPlan;
   roomId?: string; status: 'pre_match' | 'live' | 'ended';
-  mode: 'live' | 'rewatch';
-  /** ball on screen right now (moves back on a rewind) */
+  /** ball on screen right now (moves back on a rewind in the extension, where the viewer owns the player) */
   position: number;
   /** highest ball revealed in this room (spoiler mark) */
   playhead: number;
   videoTime: number;
-  sourceKind?: 'youtube' | 'scoreboard';
+  sourceKind?: 'youtube' | 'scoreboard' | 'video';
   sourceState: SourceState;
   sourceNote?: string;
-  chapterId?: string;
-  /** journey guide: offer the next chapter (auto-jumps after a countdown) */
-  upNext?: { chapterId: string; at: number };
+  volume: number;
   feed: FeedItem[];
   speakingId?: string;
   card?: CardState;
   callOffer?: CallOffer;
   calls: GangCall[];
   callResult?: { text: string; won: boolean; at: number };
+  /** the one coach hint ("Hold 🎤 or Space to talk"), until the viewer talks or the first card arrives */
+  coach: boolean;
   nudge: boolean;
   away?: AwayState;
   catchup?: Catchup;
@@ -59,14 +64,17 @@ interface RoomState {
   recording: boolean;
   storageOk: boolean;
   memories: MemorySummary[];
-  resumable?: { roomId: string; videoTime: number; label: string };
+  /** a live room from before a reload that is still on air */
+  resumable?: { roomId: string };
+  /** extras behind "More" after the wrap: Gang Calls for the next room */
+  gangCalls: boolean;
   set: (p: Partial<RoomState>) => void;
 }
 
 export const useRoom = create<RoomState>((set) => ({
-  screen: 'start', selfLoyalty: DEFAULT_SELF_LOYALTY, members: [], chapters: [], status: 'pre_match', mode: 'live',
-  position: -1, playhead: -1, videoTime: 0, sourceState: 'unstarted', feed: [], calls: [], nudge: false,
-  mic: 'unknown', recording: false, storageOk: true, memories: [],
+  screen: 'start', lang: loadLang(), selfLoyalty: DEFAULT_SELF_LOYALTY, members: [], status: 'pre_match',
+  position: -1, playhead: -1, videoTime: 0, sourceState: 'unstarted', volume: 100, feed: [], calls: [], coach: false, nudge: false,
+  mic: 'unknown', recording: false, storageOk: true, memories: [], gangCalls: loadGangCalls(),
   set: (p) => set(p),
 }));
 export const room = () => useRoom.getState();

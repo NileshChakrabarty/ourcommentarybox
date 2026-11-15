@@ -1,8 +1,10 @@
 // FR-025: fail the build if any secret (or its prefix) appears in the client bundle.
+// Usage: node scripts/check-bundle.mjs [dir]   (default dist/; the extension build checks extension/dist/)
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 const files = []; const walk = (d) => readdirSync(d).forEach((f) => { const p = join(d, f); statSync(p).isDirectory() ? walk(p) : files.push(p); });
-walk('dist');
+const DIR = process.argv[2] ?? 'dist';
+walk(DIR);
 const secrets = [process.env.GEMINI_API_KEY, process.env.SARVAM_API_KEY].map((s) => s?.trim()).filter(Boolean);
 const needles = [...secrets, ...secrets.map((s) => s.slice(0, 12)), 'GEMINI_API_KEY', 'SARVAM_API_KEY', 'api-subscription-key', 'x-goog-api-key'];
 let bad = 0;
@@ -18,4 +20,4 @@ for (const f of files) {
   for (const n of devOnly) if (txt.includes(n)) { bad++; console.error(`DEV TOOL SHIPPED: ${f} contains "${n}"`); }
 }
 if (bad) process.exit(1);
-console.log(`bundle check: ${files.length} files clean (no keys, no key names, no auth headers, no dev-only tools)`);
+console.log(`bundle check (${DIR}): ${files.length} files clean (no keys, no key names, no auth headers, no dev-only tools)`);
