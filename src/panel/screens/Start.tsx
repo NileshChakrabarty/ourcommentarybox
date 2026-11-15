@@ -31,7 +31,7 @@ export function Start() {
       <section className="start-copy">
         {/* The box with the gang already in it: their balls sit on the sill, your seat is the empty one. */}
         <div className="box">
-          <h1 className="wordmark"><span>Our</span> <span>Commentary</span> <span>Box</span></h1>
+          <h1 className="wordmark"><span>Apna</span> <span>Commentary</span> <span>Box</span></h1>
           <div className="box-sill" aria-hidden="true">
             {seats.map((f) => <Avatar key={f.id} m={f} size={36} />)}
             <span className="box-seat" />

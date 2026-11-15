@@ -10,7 +10,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
  */
 function devApi(): Plugin {
   return {
-    name: 'ourcommentarybox-dev-api',
+    name: 'apnacommentarybox-dev-api',
     configureServer(server: ViteDevServer) {
       server.middlewares.use(async (req: IncomingMessage, res: ServerResponse, next) => {
         const url = new URL(req.url ?? '/', 'http://localhost');
@@ -46,7 +46,7 @@ function devApi(): Plugin {
 /** Dev-only: /dev/tag → the tagging tool (dev/tag/index.html). Not a build input, so it never ships. */
 function devTag(): Plugin {
   return {
-    name: 'ourcommentarybox-dev-tag',
+    name: 'apnacommentarybox-dev-tag',
     apply: 'serve',
     configureServer(server: ViteDevServer) {
       server.middlewares.use((req: IncomingMessage, _res: ServerResponse, next) => {

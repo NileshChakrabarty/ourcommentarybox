@@ -14,8 +14,9 @@ import { YouTubeSource } from '../services/source/youtube';
 import '../styles/global.css';
 import './tag.css';
 
-const LS = 'ourcommentarybox-tag-v1';
-const LS_OLD = 'fun-banter-tag-v1'; // pre-rename key: read once so local tags survive the rename (ADR-0010)
+const LS = 'apnacommentarybox-tag-v1';
+// Earlier keys, newest first: read once so local tags survive both renames (ADR-0010, ADR-0012).
+const LS_OLD = ['ourcommentarybox-tag-v1', 'fun-banter-tag-v1'];
 type Stamp = { seq: number; prev: TimelineEntry };
 
 function TagTool() {
@@ -34,7 +35,7 @@ function TagTool() {
   useEffect(() => {
     void (async () => {
       const [m, t, c] = await Promise.all(['/data/match.json', '/data/timeline.json', '/data/chapters.json'].map((u) => fetch(u).then((r) => r.json())));
-      const saved = (() => { try { return JSON.parse(localStorage.getItem(LS) ?? localStorage.getItem(LS_OLD) ?? 'null'); } catch { return null; } })();
+      const saved = (() => { try { return JSON.parse([LS, ...LS_OLD].map((k) => localStorage.getItem(k)).find((v) => v != null) ?? 'null'); } catch { return null; } })();
       const match = parseMatch(m);
       setMatch(match); setChapters(ChapterFileSchema.parse(c).chapters);
       setTl(TimelineSchema.parse(saved ?? t) as TimelineEntry[]);
@@ -93,7 +94,7 @@ function TagTool() {
           <label><input type="radio" checked={inn === 2} onChange={() => setInn(2)} /> India innings</label>
           <label><input type="checkbox" checked={onlyChapters} onChange={(e) => setOnlyChapters(e.target.checked)} /> Chapter balls only</label>
           <button className="btn btn-primary btn-sm" onClick={exportJson}>Export timeline.json</button>
-          <button className="btn btn-sm" onClick={() => { if (confirm('Discard local tags and reload the shipped timeline?')) { localStorage.removeItem(LS); localStorage.removeItem(LS_OLD); location.reload(); } }}>Reset</button>
+          <button className="btn btn-sm" onClick={() => { if (confirm('Discard local tags and reload the shipped timeline?')) { [LS, ...LS_OLD].forEach((k) => localStorage.removeItem(k)); location.reload(); } }}>Reset</button>
         </div>
       </header>
       <section className="tag-video"><div className="tag-player" ref={mount} /><p className="num">Video time {fmt(now)}</p></section>

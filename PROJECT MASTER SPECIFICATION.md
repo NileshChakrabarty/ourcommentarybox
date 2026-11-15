@@ -1,11 +1,11 @@
 \# PROJECT MASTER SPECIFICATION  
-\#\# Our Commentary Box  
+\#\# Apna Commentary Box  
 \#\#\#\# The best commentary is your friends.  
 \#\#\# Voice-first gang commentary that floats above any live sports stream
 
 \| Field \| Value \|  
 \|---\|---\|  
-\| Document version \| 1.1.1 (owner decisions of 2026-11-13 and the 2026-11-15 rename applied — see §1.1) \|  
+\| Document version \| 1.1.2 (owner decisions of 2026-11-13 and the 2026-11-15 renames applied — see §1.1) \|  
 \| Date \| 2026-11-13 \|  
 \| Source \| Consolidated from the full product-discovery conversation between the project owner and Claude \|  
 \| Context \| Submission for the Dream11 Forward Deployed Engineer Intern assignment ("Build one AI-powered artifact that solves a real problem fans face during a live sports match") \|  
@@ -63,7 +63,7 @@ Important: \*\*no technology stack was discussed in the conversation.\*\* Every 
 
 \| Item \| Description \| Status \|  
 \|---\|---\|---\|  
-\| \*\*Project name\*\* \| \*\*Our Commentary Box\*\* (short form in the UI: \*\*Our Box\*\*; slug: \`ourcommentarybox\`; tagline: \"The best commentary is your friends.\"). Renamed from Fun-Banter on 2026-11-15 (§1.1 \#13). ("Match Room" remains the name of the per-match session concept inside the product.) \| CONFIRMED \|  
+\| \*\*Project name\*\* \| \*\*Apna Commentary Box\*\* (short form in the UI: \*\*Apna Box\*\*; slug: \`apnacommentarybox\`; tagline: \"The best commentary is your friends.\"). Renamed from Fun-Banter to Our Commentary Box, then to Apna Commentary Box, on 2026-11-15 (§1.1 \#13, \#14). ("Match Room" remains the name of the per-match session concept inside the product.) \| CONFIRMED \|  
 \| \*\*One-line description\*\* \| Your gang's own voice commentary, synced to the ball, floating above any live sports stream. \| PROPOSED \|  
 \| \*\*Vision\*\* \| Friends watching a match from different places should feel like they watched together — the banter, the teasing, the shared adrenaline — without leaving the stream. \| CONFIRMED (owner's words: "a sense of belonging to my friends, without too much friction") \|  
 \| \*\*Problem\*\* \| Watching a big match apart from your friends loses the best part: teasing each other when a friend's favourite player fails, laughing together, shared emotion. Today that requires leaving the stream for WhatsApp, the moment passes while typing, and a good joke is hard to produce on the spot. \| CONFIRMED \|  
@@ -78,7 +78,7 @@ Important: \*\*no technology stack was discussed in the conversation.\*\* Every 
 
 \| \# \| Decision \| Status \|  
 \|---\|---\|---\|  
-\| 1 \| \*\*Name:\*\* ~~Fun-Banter~~ — superseded by \#13 (Our Commentary Box) \| CONFIRMED (superseded) \|  
+\| 1 \| \*\*Name:\*\* ~~Fun-Banter~~ — superseded by \#13, then \#14 (Apna Commentary Box) \| CONFIRMED (superseded) \|  
 \| 2 \| \*\*Match to replay:\*\* \*\*5th T20I, New Zealand v India, 1 November 2026, Hamilton.\*\* New Zealand won by 7 wickets chasing, completing the chase with about two overs to spare; Tim Seifert and Glenn Phillips shared an 86-run partnership. India won the five-match series 3–2. (Facts from public reports; the build must confirm every detail against the full scorecard.) \| CONFIRMED (match) / verify (details) \|  
 \| 3 \| \*\*Banter language:\*\* English \| CONFIRMED \|  
 \| 4 \| \*\*Friend voices:\*\* AI voices \| CONFIRMED \|  
@@ -90,7 +90,8 @@ Important: \*\*no technology stack was discussed in the conversation.\*\* Every 
 \| 10 \| \*\*Chrome extension:\*\* only after the demo link is done \| CONFIRMED \|  
 \| 11 \| \*\*AI providers:\*\* \*\*Google Gemini\*\* for all text generation; \*\*Sarvam AI\*\* for text-to-speech (Bulbul) and speech-to-text (Saaras). Anthropic is no longer used. \| CONFIRMED \|  
 \| 12 \| Owner provides: \`GEMINI\_API\_KEY\`, \`SARVAM\_API\_KEY\` (placed in \`.env\` / hosting env by the owner, never in chat or code), and a Vercel account. \| CONFIRMED \|  
-\| 13 \| \*\*Rename (2026-11-15):\*\* the product is now \*\*Our Commentary Box\*\*. Short form in the UI: \*\*Our Box\*\*. Slug: \`ourcommentarybox\`. Tagline: \*\"The best commentary is your friends.\"\* Use the name warmly in copy (\"Welcome to the box\", \"Your gang is in the box\", \"Back in the box?\"). The browser IndexedDB database keeps its old name \`fun-banter\` so existing memories survive (see \`docs/decisions/0010-rename-our-commentary-box.md\`). \| CONFIRMED \|
+\| 13 \| \*\*Rename (2026-11-15), superseded by \#14:\*\* the product is now \*\*Our Commentary Box\*\*. Short form in the UI: \*\*Our Box\*\*. Slug: \`ourcommentarybox\`. Tagline: \*\"The best commentary is your friends.\"\* Use the name warmly in copy (\"Welcome to the box\", \"Your gang is in the box\", \"Back in the box?\"). The browser IndexedDB database keeps its old name \`fun-banter\` so existing memories survive (see \`docs/decisions/0010-rename-our-commentary-box.md\`). \| CONFIRMED (superseded) \|  
+\| 14 \| \*\*Rename (2026-11-15, later the same day):\*\* the product is now \*\*Apna Commentary Box\*\* (\"apna\": Hindi for \"our own\"). Short form in the UI: \*\*Apna Box\*\*. Slug: \`apnacommentarybox\`. The tagline \*\"The best commentary is your friends.\"\* and the warm \"box\" copy stay. The owner confirmed the spelling \"Commentary\" (not \"Commentry\"). The IndexedDB name stays \`fun-banter\` (ADR-0012). \| CONFIRMED \|
 
 \---
 
@@ -1133,7 +1134,7 @@ Moment card latency (instrumented), memory/CPU stable over the full replay, audi
 \#\# 19\. Project directory and codebase structure (PROPOSED)
 
 \`\`\`  
-ourcommentarybox/  
+apnacommentarybox/  
 ├── .env.example                  \# empty GEMINI\_/SARVAM\_ vars; real .env is git-ignored  
 ├── README.md                     \# how to run, deploy, demo script  
 ├── docs/  
@@ -1254,7 +1255,7 @@ Milestones: \*\*M1\*\* (TASK-001–008) replay works · \*\*M2\*\* (009–015) v
 9\. Not mobile for now; desktop because the company must be able to view and evaluate it.  
 10\. Voice-oriented ("least friction").  
 11\. The idea must remain the owner's own (Dream11 rule); AI used for building.  
-12\. Name: Our Commentary Box (\"Our Box\"), renamed from Fun-Banter on 2026-11-15.  
+12\. Name: Apna Commentary Box (\"Apna Box\"), renamed from Fun-Banter, via Our Commentary Box, on 2026-11-15.  
 13\. Match: 5th T20I, New Zealand v India, 1 Nov 2026, Hamilton (NZ won by 7 wickets; India won the series 3–2).  
 14\. Language: English.  
 15\. Friend voices: AI voices; friends created by the build; owner reviews.  
@@ -1300,7 +1301,7 @@ Exact deadline; whether memories need sharing/export; analytics (none assumed); 
 
 \#\#\# G. Questions requiring owner input
 
-Resolved on 2026-11-13 (kept for traceability): Q-01 match → 5th T20I NZ v IND · Q-02 name → Fun-Banter (renamed Our Commentary Box on 2026-11-15) · Q-03 extension → after the link · Q-04 Gang Calls → in · Q-06 "3" → spoiler protection · Q-08 stream → stylised scoreboard · Q-09 STT → Sarvam · Q-10 voices → AI (Sarvam) · Q-11 language → English.
+Resolved on 2026-11-13 (kept for traceability): Q-01 match → 5th T20I NZ v IND · Q-02 name → Fun-Banter (renamed Our Commentary Box, then Apna Commentary Box, on 2026-11-15) · Q-03 extension → after the link · Q-04 Gang Calls → in · Q-06 "3" → spoiler protection · Q-08 stream → stylised scoreboard · Q-09 STT → Sarvam · Q-10 voices → AI (Sarvam) · Q-11 language → English.
 
 \| ID \| Question \| Why it matters \| Options \| Recommendation \| Can dev proceed? \|  
 \|---\|---\|---\|---\|---\|---\|  
@@ -1372,5 +1373,6 @@ Demo-round talking points prepared in discussion (PROPOSED): why desktop ("built
 13\. Owner chose: 5th T20I NZ v IND (1 Nov 2026, Hamilton); name Fun-Banter; English; AI voices; stylised scoreboard view; "3" \= spoiler protection (excluded); Gang Calls in; extension only after the demo link.  
 14\. Owner: AI should happen live for the reviewer; friends should be created by the build rather than supplied by the owner.  
 15\. Owner chose Gemini (text) and Sarvam (TTS \+ STT) as AI providers; will supply both keys and a Vercel account. Spec updated to v1.1.  
-16\. 2026-11-15 — Owner renamed the product from Fun-Banter to \*\*Our Commentary Box\*\* (UI short form \"Our Box\", slug \`ourcommentarybox\`, tagline \"The best commentary is your friends.\"). This echoes item 4, where the owner first framed the product as \"our version of the commentary\". The IndexedDB name stays \`fun-banter\` (ADR-0010). Spec updated to v1.1.1.
+16\. 2026-11-15 — Owner renamed the product from Fun-Banter to \*\*Our Commentary Box\*\* (UI short form \"Our Box\", slug \`ourcommentarybox\`, tagline \"The best commentary is your friends.\"). This echoes item 4, where the owner first framed the product as \"our version of the commentary\". The IndexedDB name stays \`fun-banter\` (ADR-0010). Spec updated to v1.1.1.  
+17\. 2026-11-15 — Owner renamed the product again, to \*\*Apna Commentary Box\*\* (UI short form \"Apna Box\", slug \`apnacommentarybox\`). Tagline and \"box\" copy kept. Owner confirmed the standard spelling \"Commentary\". IndexedDB name still \`fun-banter\` (ADR-0012). Spec updated to v1.1.2.
 

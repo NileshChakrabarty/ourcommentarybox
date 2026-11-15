@@ -76,7 +76,7 @@ export function Panel() {
   const [flash, setFlash] = useState(false);
   useEffect(() => { if (!wicketAt) return; setFlash(true); const t = setTimeout(() => setFlash(false), 900); return () => clearTimeout(t); }, [wicketAt]);
   return (
-    <aside className={`panel${flash ? ' wicket-flash' : ''}`} aria-label="Our Box: your gang">
+    <aside className={`panel${flash ? ' wicket-flash' : ''}`} aria-label="Apna Box: your gang">
       <NowBar />
       <GangRow />
       {away?.active ? <AwayView /> : <><Feed /><Dock /></>}

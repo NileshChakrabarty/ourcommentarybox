@@ -1,4 +1,4 @@
-# Our Commentary Box (then Fun-Banter) v1.2 — Redesign
+# Apna Commentary Box (then Fun-Banter, later Our Commentary Box) v1.2 — Redesign
 
 Inputs: [AUDIT.md](AUDIT.md), spec §1.1, the owner's v1.2 change request.
 Every decision below was made on the owner's behalf and is also recorded in `docs/decisions/` (ADR-0005 to ADR-0009).

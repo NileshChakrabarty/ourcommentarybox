@@ -19,7 +19,7 @@ export function LiveScreen() {
   return (
     <div className="room">
       <header className="appbar">
-        <span className="appbar-mark" title="Our Commentary Box">Our Box</span>
+        <span className="appbar-mark" title="Apna Commentary Box">Apna Box</span>
         <span className="appbar-title">{match.title.replace(' · ', ', ')}</span>
         <span className="chip" title="Dev, Ritu and Sunny are AI friends. Gemini writes their lines, Sarvam voices them.">AI friends</span>
         {mode === 'rewatch' && <span className="chip">Rewatch</span>}

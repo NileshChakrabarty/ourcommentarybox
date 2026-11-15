@@ -1,4 +1,4 @@
-# Our Commentary Box (then Fun-Banter) v1.1 — Audit
+# Apna Commentary Box (then Fun-Banter, later Our Commentary Box) v1.1 — Audit
 
 Date: 14 Nov 2026. Build audited: commit `bfab59b` (v1.1, IND v NZ stylised replay).
 Method: I ran the app in Chromium at 1440×900, 1280×720 and 390×844, captured every screen and state with a scripted
