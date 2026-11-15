@@ -1,4 +1,5 @@
 // IndexedDB persistence for memories (F-MEM). Every call is wrapped: if storage is unavailable the app runs in memory.
+// Pre-rename name, kept on purpose: renaming would orphan saved memories (ADR-0010).
 const DB = 'fun-banter';
 const VERSION = 1;
 let dbp: Promise<IDBDatabase | null> | undefined;

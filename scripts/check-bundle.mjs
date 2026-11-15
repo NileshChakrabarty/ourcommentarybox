@@ -11,7 +11,7 @@ for (const f of files) {
   needles.forEach((n, i) => { if (txt.includes(n)) { bad++; console.error(`LEAK: ${f} contains ${i < secrets.length * 2 ? '[secret value]' : n}`); } });
 }
 // v1.2: dev-only tools must never ship
-const devOnly = ['Ball tagging', 'fun-banter-tag-v1', 'dev-probe', '__room'];
+const devOnly = ['Ball tagging', 'ourcommentarybox-tag-v1', 'fun-banter-tag-v1', 'dev-probe', '__room'];
 for (const f of files) {
   if (/dev[\\/](tag|probe)/.test(f)) { bad++; console.error(`DEV TOOL SHIPPED: ${f}`); }
   const txt = readFileSync(f, 'latin1');

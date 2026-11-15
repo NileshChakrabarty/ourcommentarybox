@@ -55,7 +55,7 @@ export function Feed() {
 
   return (
     <div className="feed" ref={ref} aria-live="polite" aria-label="Gang commentary, newest at the bottom">
-      {feed.length === 0 && <p className="feed-empty">{position < 0 || state !== 'playing' ? 'The gang is settling in. First ball any second.' : 'Quiet so far. Hold Space and say something.'}</p>}
+      {feed.length === 0 && <p className="feed-empty">{position < 0 || state !== 'playing' ? 'Your gang is in the box. First ball any second.' : 'Quiet so far. Hold Space and say something.'}</p>}
       <ol className="rail">
         {groups.map((g) => {
           const b = match.balls[g.seq];

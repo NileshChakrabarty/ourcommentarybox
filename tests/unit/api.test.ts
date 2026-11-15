@@ -56,7 +56,7 @@ describe('/api/lines', () => {
     await expect(generateJSON({ system: 's', user: 'u', timeoutMs: 50 }, (x) => x)).rejects.toMatchObject({ code: 'TIMEOUT' });
   });
   it('403 from a foreign origin when ALLOWED_ORIGIN is set', async () => {
-    process.env.ALLOWED_ORIGIN = 'https://fun-banter.example';
+    process.env.ALLOWED_ORIGIN = 'https://ourcommentarybox.example';
     const { POST } = await import('../../api/lines');
     expect((await POST(req('lines', linesBody, { origin: 'https://evil.example' }))).status).toBe(403);
   });

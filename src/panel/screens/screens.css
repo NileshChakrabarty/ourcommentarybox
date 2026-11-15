@@ -6,8 +6,12 @@
   grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
   max-width: 1200px; margin: 0 auto; padding: var(--s-7) clamp(var(--s-4), 5vw, var(--s-7));
 }
-.wordmark { margin: 0; font: 900 clamp(64px, 9vw, 128px)/.85 var(--font-display); color: var(--marigold); letter-spacing: -.01em; }
-.lede { margin: var(--s-3) 0 var(--s-5); font-size: var(--fs-4); line-height: 1.35; max-width: 30ch; }
+.kicker { margin: 0 0 var(--s-2); font: 700 var(--fs-3)/1 var(--font-display); color: var(--chalk-2); text-transform: uppercase; letter-spacing: .08em; }
+.wordmark { margin: 0; font: 900 clamp(52px, 7vw, 104px)/.85 var(--font-display); color: var(--marigold); letter-spacing: -.01em; max-width: 9ch; }
+.lede { margin: var(--s-3) 0 var(--s-2); font-size: var(--fs-4); font-weight: 600; line-height: 1.35; max-width: 30ch; }
+.sublede { margin: 0 0 var(--s-5); font-size: var(--fs-3); color: var(--chalk-2); line-height: 1.4; max-width: 40ch; }
+.resume { display: inline-flex; align-items: center; gap: var(--s-2); }
+.resume-q { font-size: var(--fs-2); color: var(--chalk-2); }
 .tonight { margin: 0 0 var(--s-5); font-size: var(--fs-3); color: var(--chalk-2); max-width: 52ch; }
 .tonight strong { color: var(--chalk); }
 .hero-pick { border: 0; margin: 0 0 var(--s-5); padding: 0; }

@@ -1,4 +1,4 @@
-# Fun-Banter v1.1 — Audit
+# Our Commentary Box (then Fun-Banter) v1.1 — Audit
 
 Date: 14 Nov 2026. Build audited: commit `bfab59b` (v1.1, IND v NZ stylised replay).
 Method: I ran the app in Chromium at 1440×900, 1280×720 and 390×844, captured every screen and state with a scripted
@@ -16,7 +16,7 @@ mark us down. **Medium** = polish or a robustness gap. **Low** = nice to have.
 
 | t | What the reviewer sees | Verdict |
 |---|---|---|
-| 0 s | Landing: a giant yellow "Fun-Banter" wordmark, a lede, 3 numbered steps, a CTA and a disclosure paragraph. The gang quotes animate in on the right after about 0.5 s (`01-landing`). | The purpose is clear. The disclosure is a 4-line paragraph that most people won't read. |
+| 0 s | Landing: a giant yellow wordmark (the product was then called Fun-Banter), a lede, 3 numbered steps, a CTA and a disclosure paragraph. The gang quotes animate in on the right after about 0.5 s (`01-landing`). | The purpose is clear. The disclosure is a 4-line paragraph that most people won't read. |
 | ~8 s | Setup: team, hero and villain dropdowns, "Pick for me", Test mic, and a gang card list (`02/03-setup`). | **Three decisions before anything happens.** The reviewer has to understand "hero" and "villain" before seeing why they matter. |
 | ~20 s | Live: a fake browser frame, a stylised floodlit pitch, the scorebar, and the panel showing "The gang is warming up…" (`04-live-empty`). | **There is no real match.** The pitch is a stand-in, so "beside the match" is only implied. |
 | 20–50 s | Balls fly past at up to 4/s in "Fast-forwarding quiet balls". The panel stays **empty** until India 8.5 overs (`05-first-banter`). | **Dead air.** For about 30 s the product does nothing. |

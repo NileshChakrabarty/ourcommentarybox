@@ -1,4 +1,6 @@
-# Fun-Banter
+# Our Commentary Box
+
+*The best commentary is your friends.*
 
 Your gang's voice commentary, synced to the ball, floating beside whatever you're streaming.
 Demo for the Dream11 FDE intern assignment: a replay of the **5th T20I, New Zealand v India, Hamilton, 1 Nov 2026**,

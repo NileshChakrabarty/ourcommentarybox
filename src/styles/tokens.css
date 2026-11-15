@@ -1,4 +1,4 @@
-/* Fun-Banter design tokens — "the commentary box" (docs/review/REDESIGN.md §1).
+/* Our Commentary Box design tokens — "the commentary box" (docs/review/REDESIGN.md §1).
    Every colour, size, radius and duration in the app comes from here. Dark by default (people watch at night). */
 :root {
   /* ink: the panel and app surfaces, darkest → lightest */

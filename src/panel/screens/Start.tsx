@@ -25,8 +25,10 @@ export function Start() {
   return (
     <main className="start">
       <section className="start-copy">
-        <h1 className="wordmark">Fun-Banter</h1>
-        <p className="lede">Your gang's voice commentary, pinned to the ball, right beside the match.</p>
+        <p className="kicker">Welcome to the box</p>
+        <h1 className="wordmark">Our Commentary Box</h1>
+        <p className="lede">The best commentary is your friends.</p>
+        <p className="sublede">Your gang's voice commentary, pinned to the ball, right beside the match.</p>
 
         <p className="tonight">
           <strong>{match.title.replace(' · ', ', ')}</strong> at {match.venue.replace(/, London$/, '')}, {date}.
@@ -47,7 +49,7 @@ export function Start() {
 
         <div className="start-cta">
           <button className="btn btn-primary btn-lg" onClick={() => startRoom({ ...DEFAULT_SELF_LOYALTY, heroId: hero })}>Watch with the gang</button>
-          {resumable && <button className="btn" onClick={() => void resumeRoom()}>Resume at {resumable.label}</button>}
+          {resumable && <span className="resume"><span className="resume-q">Back in the box?</span> <button className="btn" onClick={() => void resumeRoom()}>Resume at {resumable.label}</button></span>}
           {memories.length > 0 && <button className="btn btn-ghost" onClick={() => patch({ screen: 'shelf' })}>Your memories ({memories.length})</button>}
         </div>
         <p className="disclosure">

@@ -53,7 +53,7 @@ export async function resumeRoom() {
   e.restore(live.feed.map((f) => ({ ...f, unheard: false })), live.calls, await loadSources(live.feed));
   e.roomStart = live.roomStart;
   pending = { t: Math.max(0, live.videoTime - 3), silentUpTo: live.maxRevealed };
-  patch({ selfLoyalty: live.loyalty, members, screen: 'live', mode: 'live', resumable: undefined, playhead: live.maxRevealed, toast: { text: 'Picked up where you left off.', at: Date.now() } });
+  patch({ selfLoyalty: live.loyalty, members, screen: 'live', mode: 'live', resumable: undefined, playhead: live.maxRevealed, toast: { text: 'Back in the box. Picked up where you left off.', at: Date.now() } });
 }
 
 export async function rewatch(id: string) {
@@ -87,6 +87,6 @@ export async function bootSource(mount: HTMLElement | null) {
   e.attach(source, source.kind === 'scoreboard' && reason !== 'forced' ? fallbackNote(reason) : undefined);
   e.start(start.t, { silentUpTo: start.silentUpTo });
 }
-const fallbackNote = (why?: string) => { if (why) console.info('[fun-banter] video fallback:', why); return "The match video won't play here, so you're on the scoreboard replay. Same balls, same gang."; };
+const fallbackNote = (why?: string) => { if (why) console.info('[ourcommentarybox] video fallback:', why); return "The match video won't play here, so you're on the scoreboard replay. Same balls, same gang."; };
 
 export function leaveToShelf() { setEngine(undefined); patch({ screen: 'shelf', mode: 'live' }); }
