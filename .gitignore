@@ -21,3 +21,6 @@ test-results/
 
 # local probes (never shipped)
 public/dev-probe/
+
+# local browser-automation output
+.playwright-mcp/
