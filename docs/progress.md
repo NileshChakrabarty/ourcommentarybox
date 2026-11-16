@@ -33,3 +33,22 @@
 | TASK-029 Gang Calls | done | |
 | TASK-030 Chrome extension | not started (only after link is frozen) | |
 | TASK-031 live replies + voices | done | |
+
+## v1.3 (2026-11-16): live feel, Hinglish, 3-minute evaluator journey, plus the amendment
+
+| Task | Status | Notes |
+|---|---|---|
+| Simulated live broadcast | done | `LiveBroadcast` wraps the player: wall clock, no pause or seek, drift and pause correction, runs while hidden. Embed has `controls=0`, `disablekb=1`. LIVE badge, scoreboard strip, mute/volume. ADR-0014 |
+| Open-ended match + pacing | done | Join before 2.3, run to the last ball. Timed lines in long breaks. 87 lines over 2.5 h; the longest silence is 3.4 min. "Leave the box" opens the wrap at any time |
+| Hinglish by default | done | `{display, speech}` lines; Devanagari to Sarvam `hi-IN`; per-language personas; STT `saaras:v3` translit. Verified live. ADR-0013 |
+| Evaluator journey | done | One line + "Join the box"; one coach hint; wicket at ~38 s; comeback card at ~1 min; nudge at 2:00; extras behind "More". ADR-0015 |
+| Safety net, both languages | done | `npm run precompute`: 17 lines + 4 cards per language, with voices. Review: `docs/precomputed-review.md` (**owner review**) |
+| Behind the scenes (X-ray) | done | Engine log per ball; never keys, prompts or personal data. ADR-0016 |
+| /how-it-works | done | SVG diagram + 4 sections, Hinglish/English. ADR-0016 |
+| One panel, two hosts | done | `src/panel` is host-agnostic (a test enforces it). Web host in `src/hosts/web`. ADR-0017 |
+| Chrome extension (MV3) | done, **not deployed** | `extension/`, `npm run build:extension`. Verified unpacked in Chromium against the real YouTube page (8/8 sync samples) using the local API. Rebuild with `ACB_API_BASE` after the Vercel deploy |
+| Tests | done | 110 unit (live clock, journey timing, X-ray per ball, hidden-tab catch-up, Leave the box, to the last ball, Hinglish schema, English toggle, `VideoElementSource`, CORS, review regressions); 10 E2E + axe scan |
+| Real-browser walkthrough | done | `docs/review/v1.3-walkthrough.md` |
+| /code-review high | done | 10 findings fixed, 4 with regression tests |
+| /security-review | done | see `docs/review/v1.3-walkthrough.md` |
+| Deploy (TASK-027) | **waiting for owner** | needs the Vercel login; then set `ALLOWED_ORIGIN` to include `chrome-extension://aoiegnfccbedbnhagelbfojlbapjlfid` |
