@@ -19,7 +19,7 @@ export function XrayLog() {
         <button className="btn btn-sm btn-ghost" onClick={() => xtoggle(false)}>Close</button>
       </header>
       <p className="muted small xray-note">What the engine is doing, ball by ball. Read-only.</p>
-      <ol className="xray-list" ref={ref} aria-live="off">
+      <ol className="xray-list" ref={ref} aria-live="off" tabIndex={0} aria-label="Engine log">
         {entries.length === 0 && <li className="muted small">Waiting for the first ball…</li>}
         {entries.map((e) => (
           <li key={e.id} className={`x x-${e.kind}`}>

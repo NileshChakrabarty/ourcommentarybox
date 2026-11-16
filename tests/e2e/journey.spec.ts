@@ -101,9 +101,10 @@ test('evaluator journey on a mocked YouTube player, AI offline (prepared lines a
   await mockYouTube(page);
   await page.route(isApi, (r) => r.abort());
   const { vols } = await journey(page, { live: false });
-  // the gang's prepared voices duck the match through player.setVolume: down to 20 while a clip played, then back
-  expect(vols.length).toBeGreaterThan(0);
-  expect(Math.min(...vols)).toBe(20);
+  // the gang's prepared voices duck the match through player.setVolume: down to 20 while a clip played, then back up
+  // (leaving the box mutes the broadcast at the end, so the last value is 0)
+  expect(vols).toContain(20);
+  expect(vols.slice(vols.indexOf(20))).toContain(100);
 });
 
 test('evaluator journey with live AI (mocked YouTube)', async ({ page }) => {
