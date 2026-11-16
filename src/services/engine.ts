@@ -226,7 +226,12 @@ export class RoomEngine {
     if (!beats.length && !cards.length) return;
     if (!urgent && beats.length + cards.length < 6 && Date.now() - this.lastBatchAt < 15_000) return;
     beats.sort((a, b) => this.when(a) - this.when(b));
-    this.requestWindow(beats.slice(0, 10), cards.slice(0, 4));
+    // Urgent windows go out small, with the user's card in its own parallel request: Hinglish lines carry a
+    // Devanagari copy, and a big first batch timed out (12 s) in the v1.3 walkthrough. Later windows can be larger.
+    if (urgent) {
+      if (beats.length) this.requestWindow(beats.slice(0, 3), []);
+      if (cards.length) this.requestWindow([], cards.slice(0, 1));
+    } else this.requestWindow(beats.slice(0, 8), cards.slice(0, 2));
   }
 
   private requestWindow(beats: Beat[], cards: Moment[]) {

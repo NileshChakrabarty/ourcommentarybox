@@ -10,3 +10,5 @@
 .ext .wrap, .ext .shelf { min-height: 0; overflow-y: auto; flex: 1; }
 .ext .wrap-grid, .ext .wrap-more, .ext .shelf-body { grid-template-columns: 1fr; }
 .ext-note { margin: 0; padding: var(--s-1) var(--s-3); border-top: 1px solid var(--rule); }
+.ext-bar .appbar-mark { font: 900 var(--fs-4)/1 var(--font-display); color: var(--marigold); }
+.ext-bar .appbar-gap { flex: 1; }
