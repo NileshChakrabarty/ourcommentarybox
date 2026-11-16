@@ -18,7 +18,7 @@ const BLOCK = [
 // Devanagari forms of the same families. \b does not work on Devanagari in JS, so whole words are bounded by
 // "not a Devanagari letter or sign" on both sides ("साला" is blocked, "मसाला" is not).
 const BLOCK_DEV = /(?<![\u0900-\u097F])(हिंदू|हिन्दू|मुस्लिम|मुसलमान|ईसाई|सिख|जाति|दलित|ब्राह्मण|धर्म|मज़हब|चूतिया|चुतिया|मादरचोद|बहनचोद|भोसड़ी|गांडू|साला|साली|हरामी|कमीना|कुत्ता|कुत्ती|मोटा|मोटी|काला|काली|माँ|मां|बहन|बाप|पत्नी|बीवी|सट्टा|पैसा|पैसे|रुपये|रुपया|लाख|करोड़)(?![\u0900-\u097F])/;
-const DEVANAGARI = /[ऀ-ॿ]/;
+export const DEVANAGARI = /[ऀ-ॿ]/;
 
 export const wordCount = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 export function isSafe(s: string): boolean { return !BLOCK.some((re) => re.test(s)) && !BLOCK_DEV.test(s); }

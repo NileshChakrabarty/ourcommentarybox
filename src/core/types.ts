@@ -76,6 +76,8 @@ export interface FeedItem {
   /** delivered while the user was away (not auto-played, Q-12) */
   unheard?: boolean;
   intent?: string;
+  /** banter language the line was said in (v1.3), so restored audio matches the text */
+  lang?: 'hi' | 'en';
 }
 
 export type CallType = 'wicket' | 'six';

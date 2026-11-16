@@ -57,7 +57,7 @@ const CARD_TTL_MS = 45_000;
 /** After you step away, a friend remarks on it (you hear it in the catch-up). */
 const AWAY_REMARK_MS = 8_000;
 
-interface Resolved { text: string; speech?: string; audio?: Blob | string; source: FeedItem['source']; voice?: string }
+interface Resolved { text: string; speech?: string; audio?: Blob | string; source: FeedItem['source']; voice?: string; lang: Lang }
 
 export interface EngineOpts { roomId?: string; lang: Lang; gangCalls?: boolean; selfId?: ID }
 
@@ -70,6 +70,8 @@ export class RoomEngine {
   private unsub: (() => void)[] = [];
   private loop?: ReturnType<typeof setInterval>;
   private delivery = new DeliveryQueue<FeedItem>();
+  // request/result maps are keyed `${lang}:${id}`, so a request still in flight after a language switch can never
+  // write its (old-language) answer over the new one
   private beatReq = new Map<string, Promise<Resolved | null>>();
   private beatDone = new Map<string, { r: Resolved | null; at: number }>();
   private cardReq = new Map<string, Promise<string[] | null>>();
@@ -193,15 +195,14 @@ export class RoomEngine {
   private toast(text: string) { patch({ toast: { text, at: Date.now() } }); }
   private when(b: Beat) { return b.atTime ?? this.timeline.timeOf(b.seq); }
   private voice(friendId: ID) { return speakerFor(this.member(friendId), this.lang); }
+  private k(id: string, lang: Lang = this.lang) { return `${lang}:${id}`; }
 
   // ───────────────────────── language
   /** Switch the banter language. Lines already said stay; everything not yet said is re-requested. */
   setLang(l: Lang) {
     if (l === this.lang) return;
     this.lang = l;
-    for (const id of [...this.beatDone.keys()]) if (!room().feed.some((f) => f.id === `beat-${id}`)) { this.beatDone.delete(id); this.beatReq.delete(id); }
-    for (const id of [...this.beatReq.keys()]) if (!this.beatDone.has(id)) this.beatReq.delete(id);
-    this.cardReq.clear(); this.cardDone.clear();
+    const c = room().card; if (c && c.usedIdx === undefined) patch({ card: undefined }); // its lines are in the old language
     xlog('prefetch', this.label(), `Language switched to ${l === 'hi' ? 'Hinglish (hi-IN voices)' : 'English (en-IN voices)'}; upcoming lines re-requested`);
     if (this.source) this.prefetch(this.source.getCurrentTime(), true);
   }
@@ -214,14 +215,14 @@ export class RoomEngine {
     const beats: Beat[] = []; const cards: Moment[] = []; let urgent = force;
     for (const b of [...this.timed.slice(this.timedIdx), ...[...this.beatsBySeq.values()].flat()]) {
       const dt = this.when(b) - t;
-      if (dt < -5 || dt > LOOKAHEAD_S || this.beatReq.has(b.id)) continue;
+      if (dt < -5 || dt > LOOKAHEAD_S || this.beatReq.has(this.k(b.id))) continue;
       beats.push(b); urgent ||= dt < URGENT_S;
     }
     const from = Math.max(0, this.timeline.ballAt(t));
     for (let s = from; s < this.match.balls.length; s++) {
       const dt = this.timeline.timeOf(s) - t;
       if (dt > LOOKAHEAD_S) break;
-      const c = this.cardsBySeq.get(s); if (c && !this.cardReq.has(c.id)) { cards.push(c); urgent ||= dt < URGENT_S; }
+      const c = this.cardsBySeq.get(s); if (c && !this.cardReq.has(this.k(c.id))) { cards.push(c); urgent ||= dt < URGENT_S; }
     }
     if (!beats.length && !cards.length) return;
     if (!urgent && beats.length + cards.length < 6 && Date.now() - this.lastBatchAt < 15_000) return;
@@ -248,17 +249,17 @@ export class RoomEngine {
     for (const b of beats) {
       const p = batch.then(async (r): Promise<Resolved | null> => {
         const line = r?.lines?.[b.id];
-        if (!line || lang !== this.lang) return null;
+        if (!line) return null;
         const v0 = Date.now();
         const sp = await api.speak(line.speech, speakerFor(this.member(b.friendId), lang), lang);
         const voice = sp ? `Sarvam ${sp.model}, voice ${speakerFor(this.member(b.friendId), lang)} (${lang === 'hi' ? 'hi-IN' : 'en-IN'}), made in ${ms(Date.now() - v0)}` : undefined;
-        return { text: line.display, speech: line.speech, audio: sp?.blob, source: 'live', voice };
+        return { text: line.display, speech: line.speech, audio: sp?.blob, source: 'live', voice, lang };
       });
-      this.beatReq.set(b.id, p);
-      void p.then((r) => this.beatDone.set(b.id, { r, at: Date.now() }));
+      this.beatReq.set(this.k(b.id, lang), p);
+      void p.then((r) => this.beatDone.set(this.k(b.id, lang), { r, at: Date.now() }));
     }
     for (const m of cards) {
-      this.cardReq.set(m.id, batch.then((r) => { const l = r?.cards?.[m.id]?.length ? r.cards[m.id].map((x: Line) => x.display) : null; this.cardDone.set(m.id, l); return l; }));
+      this.cardReq.set(this.k(m.id, lang), batch.then((r) => { const l = r?.cards?.[m.id]?.length ? r.cards[m.id].map((x: Line) => x.display) : null; this.cardDone.set(this.k(m.id, lang), l); return l; }));
     }
   }
   private cardDTO(m: Moment) {
@@ -267,6 +268,7 @@ export class RoomEngine {
     return { id: m.id, kind, headline: m.headline, fact: m.fact, player: pl ? { name: pl.name, story: pl.story } : undefined, target: this.person(this.cardTarget(m, kind)), matchState: this.matchState(m.ballSeq) };
   }
   private requestCard(m: Moment) {
+    const key = this.k(m.id);
     const kind = cardKind(m, SELF_ID);
     const target = this.cardTarget(m, kind);
     const p = api.lines({
@@ -274,8 +276,8 @@ export class RoomEngine {
       player: m.playerId ? { name: this.P.get(m.playerId)!.name, story: this.P.get(m.playerId)!.story } : undefined,
       speaker: { name: 'You', team: this.member(SELF_ID).loyalty.teamId }, target: this.person(target),
       matchState: this.matchState(m.ballSeq),
-    }, this.lang).then((r) => { const lines = r?.lines?.length ? r.lines.map((l) => l.display) : null; this.cardDone.set(m.id, lines); return lines; });
-    this.cardReq.set(m.id, p);
+    }, this.lang).then((r) => { const lines = r?.lines?.length ? r.lines.map((l) => l.display) : null; this.cardDone.set(key, lines); return lines; });
+    this.cardReq.set(key, p);
   }
   private cardTarget(m: Moment, kind: CardState['kind']): ID | undefined {
     return cardTargetFor(m, kind, SELF_ID, this.beatsBySeq.get(m.ballSeq) ?? [], this.plan.moments, FRIENDS[0].id);
@@ -288,6 +290,7 @@ export class RoomEngine {
     const away = !!st.away?.active;
     const p: Parameters<typeof patch>[0] = { playhead: Math.max(st.playhead, seq), position: seq };
     if (ball.wicket) p.wicketAt = { seq, at: Date.now() };
+    if (st.callOffer && seq >= st.callOffer.beforeSeq + 6) p.callOffer = undefined;
     patch(p);
     const e = this.timeline.entries[seq];
     xlog('ball', ball.label, `Video ${t.toFixed(1)} s → ball ${ball.label} (${e?.src === 'tag' ? 'hand-tagged' : e?.src === 'scorebug' ? 'read off the scorebug' : 'interpolated'} at ${this.timeline.timeOf(seq).toFixed(1)} s). ${ball.text}`);
@@ -334,9 +337,9 @@ export class RoomEngine {
     const item: FeedItem = {
       id: `beat-${b.id}`, memberId: b.friendId, kind: r.audio ? 'clip' : 'text', anchorSeq: b.seq, sentAt: Date.now() + i,
       text: r.text, transcriptStatus: 'ok', source: r.source, momentId: b.momentId, targetId: b.targetId, intent: b.intent,
-      audioKey: r.audio ? `beat-${b.id}` : undefined, unheard: away,
+      audioKey: r.audio ? `beat-${b.id}` : undefined, unheard: away, lang: r.lang,
     };
-    const done = this.beatDone.get(b.id);
+    const done = this.beatDone.get(this.k(b.id, r.lang));
     const how = r.source === 'live'
       ? done && done.at <= asked ? `prefetched (ready ${ms(asked - done.at)} before it was needed)` : `live (waited ${ms(Date.now() - asked)})`
       : r.source === 'precomputed' ? 'fallback: prepared earlier by Gemini' : 'fallback: template line';
@@ -364,10 +367,20 @@ export class RoomEngine {
         const r = this.quickLine(b);
         const it: FeedItem = { id: `beat-${b.id}`, memberId: b.friendId, kind: r.audio ? 'clip' : 'text', anchorSeq: s, sentAt: Date.now() + i,
           text: r.text, transcriptStatus: 'ok', source: r.source, momentId: b.momentId, targetId: b.targetId, intent: b.intent,
-          audioKey: r.audio ? `beat-${b.id}` : undefined, unheard: true };
+          audioKey: r.audio ? `beat-${b.id}` : undefined, unheard: true, lang: r.lang };
         if (r.audio) this.audioSrc.set(it.audioKey!, r.audio);
         skipped.push(it);
       }
+    }
+    // timed lines (breaks in play, the nudge) inside the jump are missed too, never fired all at once afterwards
+    while (this.timed[this.timedIdx] && this.timed[this.timedIdx].atTime! <= t) {
+      const b = this.timed[this.timedIdx++];
+      if (b.intent === 'nudge_away' || b.intent === 'setup') continue;
+      const r = this.quickLine(b);
+      const it: FeedItem = { id: `beat-${b.id}`, memberId: b.friendId, kind: r.audio ? 'clip' : 'text', anchorSeq: b.seq, sentAt: Date.now(),
+        text: r.text, transcriptStatus: 'ok', source: r.source, intent: b.intent, audioKey: r.audio ? `beat-${b.id}` : undefined, unheard: true, lang: r.lang };
+      if (r.audio) this.audioSrc.set(it.audioKey!, r.audio);
+      skipped.push(it);
     }
     for (const it of this.delivery.release(to - 1)) skipped.push({ ...it, unheard: true });
     const wk = awayEvents(this.match, from, to - 1).filter((e) => e.wicketOf).map((e) => e.wicketOf!);
@@ -383,17 +396,17 @@ export class RoomEngine {
 
   /** A line right now, without waiting: live if already done, else precomputed, else template. */
   private quickLine(b: Beat): Resolved {
-    const live = this.beatDone.get(b.id)?.r;
+    const live = this.beatDone.get(this.k(b.id))?.r;
     if (live) return live;
     const pre = precomputed.beats[`${this.lang}:${b.id}`];
-    if (pre) return { text: pre.text, audio: pre.audio ? `${precomputedBase}${pre.audio}` : undefined, source: 'precomputed', voice: pre.audio ? `prepared audio (Sarvam, ${this.voice(b.friendId)})` : undefined };
+    if (pre) return { text: pre.text, audio: pre.audio ? `${precomputedBase}${pre.audio}` : undefined, source: 'precomputed', voice: pre.audio ? `prepared audio (Sarvam, ${this.voice(b.friendId)})` : undefined, lang: this.lang };
     const target = b.targetId ? (b.targetId === SELF_ID ? 'bro' : this.member(b.targetId).name) : '';
-    return { text: beatTemplate(b.intent, b.seq, { target }, this.lang), source: 'template' };
+    return { text: beatTemplate(b.intent, b.seq, { target }, this.lang), source: 'template', lang: this.lang };
   }
   private async resolveBeat(b: Beat): Promise<Resolved> {
-    if (!this.beatReq.has(b.id)) this.requestWindow([b], []);
+    if (!this.beatReq.has(this.k(b.id))) this.requestWindow([b], []);
     // the join line and timed lines have nothing else to wait for, so they can wait a little longer for live AI
-    if (!this.beatDone.has(b.id)) await withTimeout(this.beatReq.get(b.id), b.intent === 'setup' ? 5_000 : b.atTime !== undefined ? 3_000 : LATE_LINE_MS);
+    if (!this.beatDone.has(this.k(b.id))) await withTimeout(this.beatReq.get(this.k(b.id)), b.intent === 'setup' ? 5_000 : b.atTime !== undefined ? 3_000 : LATE_LINE_MS);
     return this.quickLine(b);
   }
 
@@ -425,7 +438,7 @@ export class RoomEngine {
   private showCard(m: Moment) {
     const kind = cardKind(m, SELF_ID);
     const targetId = this.cardTarget(m, kind);
-    const done = this.cardDone.get(m.id);
+    const done = this.cardDone.get(this.k(m.id));
     const pre = precomputed.cards[`${this.lang}:${m.id}|${kind}`];
     let lines: string[]; let source: LineSource;
     if (done) { lines = done; source = 'live'; }
@@ -440,7 +453,9 @@ export class RoomEngine {
     xlog('line', this.label(m.ballSeq), `Your ${kind} card (${m.ruleId}) · ${source === 'live' ? 'written live by Gemini' : source === 'precomputed' ? 'fallback: prepared earlier' : 'fallback: template'} · ${lines.length} options`);
     this.later(() => { const c = room().card; if (c?.moment.id === m.id && c.usedIdx === undefined) patch({ card: undefined }); }, CARD_TTL_MS);
     // live lines arriving late replace the fallback, if the card is still unused
-    if (source !== 'live') void withTimeout(this.cardReq.get(m.id), 4_000).then((l) => {
+    const lang = this.lang;
+    if (source !== 'live') void withTimeout(this.cardReq.get(this.k(m.id)), 4_000).then((l) => {
+      if (lang !== this.lang) return;
       const c = room().card;
       if (l?.length && c?.moment.id === m.id && c.usedIdx === undefined) patch({ card: { ...c, lines: l, idx: 0, source: 'live' } });
     });
@@ -482,8 +497,9 @@ export class RoomEngine {
     this.update(id, text ? { text, transcriptStatus: 'ok' } : { transcriptStatus: 'failed' });
     if (text) {
       // a spoken comeback counts as using the card
-      if (card && card.usedIdx === undefined && room().card?.moment.id === card.moment.id) {
-        patch({ card: { ...card, usedIdx: card.idx } });
+      const cur = room().card;
+      if (card && cur && cur.moment.id === card.moment.id && cur.usedIdx === undefined) {
+        patch({ card: { ...cur, usedIdx: cur.idx } });
         this.later(() => { if (room().card?.moment.id === card.moment.id) patch({ card: undefined }); }, 6_000);
       }
       void this.replyTo(text);
@@ -553,7 +569,7 @@ export class RoomEngine {
     if (mine?.status === 'won' && !this.cardsBySeq.has(seq)) {
       const m: Moment = { id: `call-${mine.innings}-${mine.over}`, ruleId: 'R5', ballSeq: seq, severity: 2, headline: `You called it: ${CALL_LABEL[mine.type].toLowerCase()}`, fact: `The user correctly predicted "${CALL_LABEL[mine.type]}" for this over.`, ownerId: SELF_ID };
       this.requestCard(m); this.cardsBySeq.set(seq, m);
-      void withTimeout(this.cardReq.get(m.id), 2_500).then(() => { if (room().playhead === seq) this.showCard(m); });
+      void withTimeout(this.cardReq.get(this.k(m.id)), 2_500).then(() => { if (room().playhead === seq) this.showCard(m); });
     } else if (mine?.status === 'lost') {
       const w = room().calls.find((c) => c.memberId !== SELF_ID && c.status === 'won' && c.over === mine.over && c.innings === mine.innings);
       if (w) void this.liveLine(w.memberId, 'call_brag', `${this.member(w.memberId).name} predicted "${CALL_LABEL[w.type]}" correctly; the user called "${CALL_LABEL[mine.type]}" and was wrong.`, SELF_ID, seq).then(() => undefined);
@@ -618,6 +634,8 @@ export class RoomEngine {
     this.awaitCallback = false;
     const missedItems = room().feed.filter((f) => f.unheard);
     const missed = missedItems.map((f) => f.id);
+    // the catch-up covers them: they stop counting as missed (a later step-away only counts new lines)
+    if (missed.length) patch({ feed: room().feed.map((f) => (f.unheard ? { ...f, unheard: false } : f)) });
     const secs = Math.round((Date.now() - a.since) / 1000);
     xlog('away', this.label(), `Back after ${secs} s: ${to - from} ball${to - from === 1 ? '' : 's'} and ${missed.length} gang line${missed.length === 1 ? '' : 's'} missed`);
     if (a.auto && to === from && !missed.length) { patch({ away: undefined }); return; }
@@ -653,7 +671,8 @@ export class RoomEngine {
     if (!complete) audio.clear();
     this.timers.forEach(clearTimeout); this.timers.clear();
     this.source?.pause();
-    this.source?.setVolume(0);
+    if (this.source?.kind !== 'video') this.source?.setVolume(0); // the extension never touches the viewer's volume at the end
+    this.ducker.restore();
     patch({ status: 'ended', card: undefined, callOffer: undefined, catchup: undefined, away: undefined, nudge: false, coach: false });
     const st = room();
     const fromSeq = this.roomStart ?? 0, toSeq = Math.max(fromSeq, st.playhead);
@@ -738,7 +757,7 @@ export async function loadSources(feed: FeedItem[], lang: Lang): Promise<Map<str
   await Promise.all(feed.filter((f) => f.audioKey).map(async (f) => {
     const b = await storage.getBlob(f.audioKey!);
     if (b) m.set(f.audioKey!, b);
-    else if (f.id.startsWith('beat-')) { const pre = precomputed.beats[`${lang}:${f.id.slice(5)}`]; if (pre?.audio) m.set(f.audioKey!, `${precomputedBase}${pre.audio}`); }
+    else if (f.id.startsWith('beat-')) { const pre = precomputed.beats[`${f.lang ?? lang}:${f.id.slice(5)}`]; if (pre?.audio) m.set(f.audioKey!, `${precomputedBase}${pre.audio}`); }
   }));
   return m;
 }

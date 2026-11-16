@@ -163,3 +163,84 @@ describe('the end of the room', () => {
     e.stop();
   });
 });
+
+// ── regressions from the v1.3 code review ─────────────────────────────────────────────────────────────────────────
+import { audio } from '../../src/services/audio/engine';
+import type { MatchSource, SourceState } from '../../src/services/source/types';
+
+/** The viewer's own player (extension host): we only read its time; it can jump anywhere. */
+function manual(t: number) {
+  const vols: number[] = [];
+  const src: MatchSource & { t: number } = {
+    kind: 'video', t,
+    getCurrentTime() { return this.t; }, getState: (): SourceState => 'playing',
+    play() {}, pause() {}, seekTo() {}, setVolume: (v: number) => { vols.push(v); }, getVolume: () => 100,
+    onStateChange: () => () => {}, destroy() {},
+  };
+  return { src, vols };
+}
+function bootManual(t: number) {
+  patch({ feed: [], calls: [], card: undefined, away: undefined, catchup: undefined, wrap: undefined, nudge: false, coach: true,
+    playhead: -1, position: -1, status: 'pre_match', screen: 'live', match, timeline: tl, live, lang: 'hi' });
+  const e = new RoomEngine(match, gang(), tl, live, { lang: 'hi' });
+  const m = manual(t);
+  e.attach(m.src); e.start(t);
+  return { e, ...m };
+}
+
+describe('code-review regressions', () => {
+  it('a forward jump turns the timed lines it skipped into missed items: nothing plays, no stale nudge', async () => {
+    const enqueue = vi.spyOn(audio, 'enqueue');
+    const { e, src } = bootManual(t0);
+    await run(2);
+    const before = room().feed.length;
+    enqueue.mockClear();
+    src.t = t0 + 400; // the viewer drags YouTube's seek bar ~7 minutes ahead
+    await run(3);
+    const jumped = room().feed.slice(before);
+    expect(jumped.some((f) => f.intent === 'lull' && f.unheard)).toBe(true);
+    expect(jumped.some((f) => f.intent === 'nudge_away')).toBe(false);
+    expect(room().nudge).toBe(false);
+    expect(jumped.filter((f) => f.kind !== 'skip' && !f.unheard)).toHaveLength(0);
+    e.stop();
+  });
+  it('leaving the box never mutes the viewer’s own YouTube player (extension)', async () => {
+    const { e, vols } = bootManual(t0);
+    await run(5);
+    e.finish();
+    await run(10);
+    expect(room().screen).toBe('wrap');
+    expect(vols).not.toContain(0);
+  });
+  it('after the catch-up, missed lines stop counting: a quick tab switch with nothing new shows no catch-up', async () => {
+    const { e } = boot();
+    await run(30); e.setHidden(true); await run(30); e.setHidden(false); await run(4);
+    expect(room().catchup).toBeDefined();
+    expect(room().feed.some((f) => f.unheard)).toBe(false);
+    e.dismissCatchup();
+    e.setHidden(true); e.setHidden(false); await run(1);
+    expect(room().catchup).toBeUndefined();
+    e.stop();
+  });
+  it('a language switch while a request is in flight never lets the old-language answer through', async () => {
+    let release: () => void = () => {};
+    const gate = new Promise<void>((r) => { release = r; });
+    vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+      const body = JSON.parse(String(init?.body ?? '{}'));
+      if (url.endsWith('/api/react') && body.language === 'hi') {
+        await gate; // the Hinglish batch is slow…
+        const lines = Object.fromEntries(body.beats.map((b: { id: string }) => [b.id, { display: 'PURANI HINGLISH LINE', speech: 'पुरानी लाइन' }]));
+        return new Response(JSON.stringify({ lines, cards: {} }), { status: 200 });
+      }
+      return new Response('{}', { status: 503 });
+    }));
+    const { e } = boot();
+    await run(1);
+    e.setLang('en'); // …and the viewer switches to English before it lands
+    release();
+    await run(45);
+    expect(room().feed.some((f) => f.text === 'PURANI HINGLISH LINE')).toBe(false);
+    expect(room().feed.filter((f) => f.anchorSeq === rohitOut && f.intent === 'tease').every((f) => f.lang === 'en')).toBe(true);
+    e.stop();
+  });
+});

@@ -4,7 +4,7 @@ import { room, patch } from '../../store/room';
 import { RoomEngine, setEngine, engine, loadSources, liveRate, type LiveSnapshot } from '../../services/engine';
 import { storage } from '../../services/storage/db';
 import { openSource } from '../../services/source/open';
-import { LiveBroadcast, type LiveAnchor } from '../../services/source/live';
+import { LiveBroadcast, liveTimeAt, type LiveAnchor } from '../../services/source/live';
 import { joinTime } from '../../core/friends/director';
 import { FRIENDS, DEFAULT_SELF_LOYALTY } from '../../content/gang';
 import { audio } from '../../services/audio/engine';
@@ -24,7 +24,7 @@ function anchorFor(joinedAt?: number): LiveAnchor {
   return { joinT: joinTime(tl, live), endT: tl.timeOf(live.endBallSeq) + 20, rate: liveRate(), joinedAt };
 }
 /** Live position right now for a room that started at `joinedAt` (wall-clock ms). */
-export function liveNow(a: LiveAnchor) { return a.joinT + ((Date.now() - (a.joinedAt ?? Date.now())) / 1000) * a.rate; }
+export function liveNow(a: LiveAnchor) { return liveTimeAt({ ...a, joinedAt: a.joinedAt ?? Date.now() }, Date.now()); }
 
 function newEngine(members: Member[], roomId?: string) {
   const st = room();

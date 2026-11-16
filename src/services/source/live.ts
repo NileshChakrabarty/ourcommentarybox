@@ -18,6 +18,10 @@ const FIX_EVERY_MS = 2_000;
 
 export interface LiveAnchor { joinT: number; endT: number; rate: number; joinedAt?: number }
 
+/** The live position (video seconds) at wall-clock `now` for a viewer who joined at `joinedAt`. One formula for all. */
+export const liveTimeAt = (a: LiveAnchor, now: number) =>
+  a.joinedAt === undefined ? a.joinT : Math.min(a.endT, a.joinT + ((now - a.joinedAt) / 1000) * a.rate);
+
 /** The source under any wrapper (for source-specific extras such as the scoreboard's crowd volume). */
 export const unwrap = (s: MatchSource): MatchSource => (s instanceof LiveBroadcast ? unwrap(s.inner) : s);
 
@@ -40,8 +44,7 @@ export class LiveBroadcast implements MatchSource {
   /** Wall-clock ms when this viewer joined (undefined until the broadcast starts). */
   get startedAt() { return this.joinedAt; }
   liveTime(): number {
-    if (this.joinedAt === undefined) return this.anchor.joinT;
-    return Math.min(this.anchor.endT, this.anchor.joinT + ((this.clock.now() - this.joinedAt) / 1000) * this.anchor.rate);
+    return liveTimeAt({ ...this.anchor, joinedAt: this.joinedAt }, this.clock.now());
   }
 
   /** Keep the player on the live position. Cheap; called on every read of the time. */

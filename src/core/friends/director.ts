@@ -68,7 +68,9 @@ export function planBeats(match: Match, members: Member[], moments: Moment[], se
   /** pick a speaker: not excluded, not already speaking on this ball (ball beats only), fewest lines, not the last speaker */
   const pick = (seq: number, exclude: ID[] = [], at?: number): Member | undefined => {
     const busy = at === undefined ? new Set(beats.filter((b) => b.seq === seq && b.atTime === undefined).map((b) => b.friendId)) : new Set<ID>();
-    const last = [...beats].sort((a, b) => when(a) - when(b)).filter((b) => when(b) <= (at ?? tl.timeOf(seq))).at(-1)?.friendId;
+    const until = at ?? tl.timeOf(seq);
+    let last: ID | undefined, lastT = -Infinity;
+    for (const b of beats) { const w = when(b); if (w <= until && w >= lastT) { lastT = w; last = b.friendId; } }
     return friends.filter((f) => !exclude.includes(f.id) && !busy.has(f.id))
       .sort((a, b) => count(a.id) - count(b.id) || Number(a.id === last) - Number(b.id === last))[0];
   };
@@ -158,7 +160,7 @@ export function planBeats(match: Match, members: Member[], moments: Moment[], se
 
   // 3. Ball chatter with pacing: big balls always get a voice, quiet balls only after a quiet spell.
   const ballBeatsAt = (s: number) => beats.filter((b) => b.seq === s && b.atTime === undefined);
-  const lastSpokeBefore = (t: number) => Math.max(-Infinity, ...beats.map(when).filter((x) => x < t));
+  const lastSpokeBefore = (t: number) => { let m = -Infinity; for (const b of beats) { const w = when(b); if (w < t && w > m) m = w; } return m; };
   for (let s = from; s <= to; s++) {
     if (ballBeatsAt(s).length) continue;
     const b = match.balls[s];
@@ -166,8 +168,8 @@ export function planBeats(match: Match, members: Member[], moments: Moment[], se
     const early = t - t0 < pc.warmSec; // livelier in the first minutes, so a new viewer feels the gang at once
     const big = !!b.wicket || b.runsBat >= 4;
     const quiet = (early ? pc.quietSecEarly : pc.quietSec) * (b.runsBat === 0 && !b.extras ? 1.5 : 1);
-    if (!big && t - lastSpokeBefore(t) < quiet) continue;
-    if (!big && t - lastSpokeBefore(t) < 12) continue;
+    const sinceLast = t - lastSpokeBefore(t);
+    if (!big && (sinceLast < quiet || sinceLast < 12)) continue;
     const fact = `${b.text} ${stateLine(match, snaps[s])}.`;
     const f = pick(s);
     if (!f) continue;

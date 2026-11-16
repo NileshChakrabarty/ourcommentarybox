@@ -35,14 +35,19 @@ function useVideoConnected(videoId?: string) {
   return ok;
 }
 
-function join() {
+async function join() {
   const st = room();
+  // wait for the first report from the viewer's video: starting at time 0 would treat the whole match so far as
+  // "missed" and fire every timed line at once
+  const src = new VideoElementSource(transport, st.match!.video!.id);
+  const t0 = Date.now();
+  while (!src.connected && Date.now() - t0 < 5_000) await new Promise((r) => setTimeout(r, 100));
+  if (!src.connected) { src.destroy(); patch({ toast: { text: 'The YouTube tab stopped reporting. Play the video, then join again.', at: Date.now() } }); return; }
   resetRoom(); xclear();
   audio.unlock();
   const members = [selfMember(DEFAULT_SELF_LOYALTY), ...FRIENDS];
   const e = new RoomEngine(st.match!, members, st.timeline!, st.live!, { lang: st.lang, gangCalls: st.gangCalls });
   setEngine(e);
-  const src = new VideoElementSource(transport, st.match!.video!.id);
   patch({ members, screen: 'live', coach: true });
   e.attach(src, 'synced to your YouTube tab');
   const t = src.getCurrentTime();
@@ -73,7 +78,7 @@ function Start() {
       <p className="lede">Watch with your gang, even when you're apart.</p>
       {connected ? (
         <>
-          <button className="btn btn-primary btn-lg" onClick={join}>Join the box</button>
+          <button className="btn btn-primary btn-lg" onClick={() => void join()}>Join the box</button>
           <p className="muted small">Synced to the match in your YouTube tab. Use YouTube's controls as usual; the gang follows your video.</p>
         </>
       ) : (
